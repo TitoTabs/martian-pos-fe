@@ -110,7 +110,7 @@ onMounted(fetchCatalog)
         <div class="flex gap-2">
           <div v-for="n in 4" :key="n" class="h-9 w-20 shrink-0 animate-pulse rounded-full bg-stone-200" />
         </div>
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <div class="grid w-full max-w-full grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           <div
             v-for="n in 8"
             :key="n"
@@ -136,7 +136,7 @@ onMounted(fetchCatalog)
 
     <div v-else class="grid gap-6 lg:grid-cols-3">
       <!-- Item grid -->
-      <div class="space-y-4 lg:col-span-2">
+      <div class="min-w-0 space-y-4 lg:col-span-2">
         <div class="scroll-touch -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           <button
             class="flex shrink-0 items-center rounded-full px-4 py-2.5 text-sm font-medium"
@@ -160,7 +160,7 @@ onMounted(fetchCatalog)
           <h2 class="text-sm font-semibold uppercase tracking-wide text-stone-500">
             {{ group.category }}
           </h2>
-          <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div class="grid w-full max-w-full grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             <button
               v-for="product in group.products"
               :key="product.id"
