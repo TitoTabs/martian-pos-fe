@@ -47,8 +47,8 @@ onMounted(() => auth.fetchUser())
 
 <template>
   <div class="min-h-screen bg-mars-50 lg:flex">
-    <!-- Desktop sidebar -->
-    <aside class="hidden lg:flex lg:w-60 lg:shrink-0 lg:flex-col lg:bg-mars-950">
+    <!-- Desktop sidebar: pinned while the page scrolls naturally. -->
+    <aside class="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-60 lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:bg-mars-950">
       <div class="flex items-center gap-2.5 px-5 py-5">
         <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-mars-600">
           <Coffee class="h-5 w-5 text-mars-50" />

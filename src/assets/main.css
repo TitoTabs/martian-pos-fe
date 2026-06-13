@@ -28,7 +28,14 @@
 html,
 body {
   width: 100%;
-  overflow-x: hidden;
+  /*
+   * Suppress horizontal scroll WITHOUT breaking vertical scroll.
+   * `overflow-x: hidden` would force `overflow-y` to compute as `auto`,
+   * turning the document into a viewport-height scroll container that
+   * locks/clips long admin tables. `overflow-x: clip` paired with the
+   * default `overflow-y: visible` leaves vertical scrolling untouched.
+   */
+  overflow-x: clip;
   /* Honour the iOS/Android status-bar background colour in standalone mode. */
   background-color: var(--color-mars-50);
   /* Prevent iOS auto-zooming font sizes in landscape. */
