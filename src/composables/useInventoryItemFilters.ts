@@ -10,7 +10,7 @@ export type StockStatus = 'all' | 'in' | 'low' | 'out'
  * out = no stock left, low = at/below minimum, in = above minimum.
  */
 export function useInventoryItemFilters(items: Ref<InventoryItem[]>) {
-  const { sort, category, categories, filtered: byCatalog } = useCatalogFilters(items)
+  const { sort, category, search, categories, filtered: byCatalog } = useCatalogFilters(items)
 
   const stockStatus = ref<StockStatus>('all')
 
@@ -29,5 +29,5 @@ export function useInventoryItemFilters(items: Ref<InventoryItem[]>) {
 
   const filtered = computed(() => byCatalog.value.filter(matchesStock))
 
-  return { sort, category, categories, stockStatus, filtered }
+  return { sort, category, search, categories, stockStatus, filtered }
 }

@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { LoaderCircle, Pencil, Plus, Power, Trash2, XCircle } from 'lucide-vue-next'
 
 import BaseModal from '@/components/BaseModal.vue'
+import FilterSelect from '@/components/FilterSelect.vue'
 import Pagination from '@/components/Pagination.vue'
-import { useCatalogFilters } from '@/composables/useCatalogFilters'
+import SearchInput from '@/components/SearchInput.vue'
+import { useCatalogFilters, type SortOrder } from '@/composables/useCatalogFilters'
 import { PRODUCT_CATEGORIES, type ProductCategory } from '@/constants/productCategories'
 import { useCrudList } from '@/composables/useCrudList'
 import { usePagination } from '@/composables/usePagination'
@@ -26,12 +28,24 @@ const {
   toggleActive,
 } = useCrudList<Product, ProductPayload>({ ...productService, list: productService.listAll })
 
-const { sort, category, categories, filtered } = useCatalogFilters(products, PRODUCT_CATEGORIES)
+const { sort, category, search, categories, filtered } = useCatalogFilters(
+  products,
+  PRODUCT_CATEGORIES,
+)
 const paged = usePagination(filtered, 10)
 const toast = useToast()
 
+const sortOptions: { value: SortOrder; label: string }[] = [
+  { value: 'az', label: 'A–Z' },
+  { value: 'za', label: 'Z–A' },
+]
+const categoryOptions = computed(() => [
+  { value: 'all', label: 'All' },
+  ...categories.value.map((cat) => ({ value: cat, label: cat })),
+])
+
 // Jump back to page 1 whenever a filter changes.
-watch([sort, category], paged.reset)
+watch([sort, category, search], paged.reset)
 
 const allAddons = ref<Addon[]>([])
 
@@ -87,18 +101,9 @@ onMounted(async () => {
 
 <template>
   <div class="space-y-4">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-semibold text-stone-900">Products</h1>
-        <p class="text-sm text-stone-500">Sellable menu items shown in the POS</p>
-      </div>
-      <button
-        class="flex items-center gap-1.5 rounded-lg bg-mars-600 px-3 py-2 text-sm font-medium text-white hover:bg-mars-700"
-        @click="openModal()"
-      >
-        <Plus class="h-4 w-4" />
-        Add Product
-      </button>
+    <div>
+      <h1 class="text-2xl font-semibold text-stone-900">Products</h1>
+      <p class="text-sm text-stone-500">Sellable menu items shown in the POS</p>
     </div>
 
     <p v-if="error" class="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -112,16 +117,22 @@ onMounted(async () => {
     </div>
 
     <template v-else>
-      <!-- Filters -->
-      <div class="flex flex-wrap gap-2">
-        <select v-model="sort" class="rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm">
-          <option value="az">Name A–Z</option>
-          <option value="za">Name Z–A</option>
-        </select>
-        <select v-model="category" class="rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm">
-          <option value="all">All categories</option>
-          <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
-        </select>
+      <!-- Filter toolbar -->
+      <div class="space-y-3 rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
+        <div class="flex items-center gap-2">
+          <SearchInput v-model="search" placeholder="Search products…" />
+          <button
+            class="flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-mars-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-mars-700"
+            @click="openModal()"
+          >
+            <Plus class="h-4 w-4" />
+            <span class="hidden sm:inline">Product</span>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 border-t border-stone-100 pt-3">
+          <FilterSelect v-model="sort" label="Sort" :options="sortOptions" />
+          <FilterSelect v-model="category" label="Category" :options="categoryOptions" />
+        </div>
       </div>
 
       <!-- Desktop table -->

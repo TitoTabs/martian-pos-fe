@@ -5,9 +5,10 @@ import { LoaderCircle, XCircle } from 'lucide-vue-next'
 import Pagination from '@/components/Pagination.vue'
 import RangeFilter from '@/components/RangeFilter.vue'
 import SavingsBreakdownCard from '@/components/SavingsBreakdownCard.vue'
+import SegmentedControl from '@/components/SegmentedControl.vue'
 import StatCard from '@/components/StatCard.vue'
 import { usePagination } from '@/composables/usePagination'
-import { useReports, type ReportTab } from '@/composables/useReports'
+import { useReports, type PaymentFilter, type ReportTab } from '@/composables/useReports'
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format'
 import { customRangeLabel, periodRangeLabel } from '@/utils/periodLabel'
 
@@ -25,12 +26,12 @@ const {
   setRange,
 } = useReports()
 
-const paymentOptions = [
+const paymentOptions: { value: PaymentFilter; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'cash', label: 'Cash' },
   { value: 'gcash', label: 'GCash' },
   { value: 'card', label: 'Card' },
-] as const
+]
 
 const rangeLabel = computed(() =>
   query.value.startDate && query.value.endDate
@@ -112,17 +113,7 @@ onMounted(fetchReport)
 
       <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
         <h2 class="text-sm font-medium uppercase tracking-wide text-stone-500">POS Sales</h2>
-        <label class="flex items-center gap-1.5 text-sm text-stone-500">
-          Payment
-          <select
-            v-model="paymentMethod"
-            class="rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm text-stone-700"
-          >
-            <option v-for="opt in paymentOptions" :key="opt.value" :value="opt.value">
-              {{ opt.label }}
-            </option>
-          </select>
-        </label>
+        <SegmentedControl v-model="paymentMethod" :options="paymentOptions" />
       </div>
       <!-- Desktop table -->
       <div class="hidden overflow-hidden rounded-lg border border-stone-200 bg-white md:block">

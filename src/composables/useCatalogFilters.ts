@@ -13,6 +13,7 @@ export function useCatalogFilters<T extends { name: string; category: string }>(
 ) {
   const sort = ref<SortOrder>('az')
   const category = ref('all')
+  const search = ref('')
 
   const categories = computed(() =>
     fixedCategories
@@ -21,8 +22,11 @@ export function useCatalogFilters<T extends { name: string; category: string }>(
   )
 
   const filtered = computed(() => {
+    const term = search.value.trim().toLowerCase()
     const list = items.value.filter(
-      (item) => category.value === 'all' || item.category === category.value,
+      (item) =>
+        (category.value === 'all' || item.category === category.value) &&
+        (term === '' || item.name.toLowerCase().includes(term)),
     )
 
     return list.sort((a, b) =>
@@ -30,5 +34,5 @@ export function useCatalogFilters<T extends { name: string; category: string }>(
     )
   })
 
-  return { sort, category, categories, filtered }
+  return { sort, category, search, categories, filtered }
 }
