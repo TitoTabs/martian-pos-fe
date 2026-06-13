@@ -110,13 +110,13 @@ onMounted(fetchCatalog)
         <div class="flex gap-2">
           <div v-for="n in 4" :key="n" class="h-9 w-20 shrink-0 animate-pulse rounded-full bg-stone-200" />
         </div>
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           <div
             v-for="n in 8"
             :key="n"
             class="animate-pulse rounded-xl border border-stone-200 bg-white p-3 sm:p-4"
           >
-            <div class="mb-2 aspect-square w-full rounded-lg bg-stone-200 sm:h-24" />
+            <div class="mb-2 h-32 w-full rounded-lg bg-stone-200 sm:h-24" />
             <div class="h-4 w-3/4 rounded bg-stone-200" />
             <div class="mt-2 h-3 w-1/2 rounded bg-stone-100" />
             <div class="mt-3 h-4 w-1/3 rounded bg-stone-200" />
@@ -160,11 +160,11 @@ onMounted(fetchCatalog)
           <h2 class="text-sm font-semibold uppercase tracking-wide text-stone-500">
             {{ group.category }}
           </h2>
-          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             <button
               v-for="product in group.products"
               :key="product.id"
-              class="relative flex flex-col overflow-hidden rounded-xl border bg-white p-3 text-left transition duration-150 active:scale-[0.97] active:bg-mars-50 hover:shadow-sm sm:p-4"
+              class="relative flex min-w-0 flex-col overflow-hidden rounded-xl border bg-white p-3 text-left transition duration-150 active:scale-[0.97] active:bg-mars-50 hover:shadow-sm sm:p-4"
               :class="
                 justAddedId === product.id
                   ? 'border-green-400 ring-2 ring-green-300 shadow-md'
@@ -176,9 +176,9 @@ onMounted(fetchCatalog)
                 v-if="product.image"
                 :src="product.image"
                 :alt="product.name"
-                class="mb-2 aspect-square w-full rounded-lg object-cover sm:h-24"
+                class="mb-2 h-32 w-full rounded-lg object-cover sm:h-24"
               />
-              <p class="font-semibold leading-snug text-stone-900">{{ product.name }}</p>
+              <p class="break-words font-semibold leading-snug text-stone-900">{{ product.name }}</p>
               <p class="text-xs text-stone-500 sm:text-sm">{{ product.category }}</p>
               <p class="mt-auto pt-2 text-base font-bold text-mars-600 sm:text-lg">
                 {{ formatCurrency(product.price) }}
