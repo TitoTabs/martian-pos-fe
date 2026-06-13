@@ -1,6 +1,7 @@
 /**
- * Allocation percentages applied to eligible sales (pastries already
- * excluded upstream). The four shares total 100%.
+ * Allocation percentages applied to net revenue (Total Sales − Expenses,
+ * with pastries already excluded from sales upstream). The four shares
+ * total 100%.
  */
 export const SAVINGS_ALLOCATION = {
   creditCard: 0.2,
@@ -10,7 +11,7 @@ export const SAVINGS_ALLOCATION = {
 } as const
 
 export interface AllocationBreakdown {
-  eligibleSales: number
+  netRevenue: number
   creditCard: number
   capitalRecovery: number
   personalAllowance: number
@@ -18,20 +19,21 @@ export interface AllocationBreakdown {
 }
 
 /**
- * Split eligible sales into the four allocation buckets.
+ * Split net revenue into the four allocation buckets. Allocation is always
+ * based on Net Revenue (Total Sales − Expenses), never gross/eligible sales.
  *
- *   Credit Card Payment = 20% of eligible sales
- *   Capital Recovery    = 30% of eligible sales
- *   Personal Allowance  = 25% of eligible sales
- *   Savings             = 25% of eligible sales
+ *   Credit Card Payment = 20% of net revenue
+ *   Capital Recovery    = 30% of net revenue
+ *   Personal Allowance  = 25% of net revenue
+ *   Savings             = 25% of net revenue
  */
-export function allocationBreakdown(eligibleSales: number): AllocationBreakdown {
+export function allocationBreakdown(netRevenueAmount: number): AllocationBreakdown {
   return {
-    eligibleSales,
-    creditCard: round(eligibleSales * SAVINGS_ALLOCATION.creditCard),
-    capitalRecovery: round(eligibleSales * SAVINGS_ALLOCATION.capitalRecovery),
-    personalAllowance: round(eligibleSales * SAVINGS_ALLOCATION.personalAllowance),
-    savings: round(eligibleSales * SAVINGS_ALLOCATION.savings),
+    netRevenue: netRevenueAmount,
+    creditCard: round(netRevenueAmount * SAVINGS_ALLOCATION.creditCard),
+    capitalRecovery: round(netRevenueAmount * SAVINGS_ALLOCATION.capitalRecovery),
+    personalAllowance: round(netRevenueAmount * SAVINGS_ALLOCATION.personalAllowance),
+    savings: round(netRevenueAmount * SAVINGS_ALLOCATION.savings),
   }
 }
 

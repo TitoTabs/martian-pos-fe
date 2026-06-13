@@ -341,7 +341,8 @@ onMounted(fetchReport)
           <StatCard label="Total Expenses" :value="formatCurrency(savingsReport.total_expenses)" accent="red" />
         </div>
         <SavingsBreakdownCard
-          :eligible-sales="savingsReport.total_sales"
+          :total-sales="savingsReport.total_sales"
+          :total-expenses="savingsReport.total_expenses"
           :pos-sales="savingsReport.pos_sales_total"
           :manual-sales="savingsReport.manual_sales_total"
         />

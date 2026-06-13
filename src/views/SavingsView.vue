@@ -5,7 +5,7 @@ import { CreditCard, HandCoins, LoaderCircle, PiggyBank, RotateCcw, XCircle } fr
 import { reportService } from '@/services/reportService'
 import type { ApiError } from '@/types/api'
 import type { Period, SavingsReport } from '@/types/report'
-import { SAVINGS_ALLOCATION, allocationBreakdown } from '@/utils/calculations'
+import { SAVINGS_ALLOCATION, allocationBreakdown, netRevenue } from '@/utils/calculations'
 import { formatCurrency, formatDate } from '@/utils/format'
 
 type Filter = Period | 'custom'
@@ -51,7 +51,9 @@ async function fetchReport() {
 }
 
 const breakdown = computed(() =>
-  report.value ? allocationBreakdown(report.value.total_sales) : null,
+  report.value
+    ? allocationBreakdown(netRevenue(report.value.total_sales, report.value.total_expenses))
+    : null,
 )
 
 const rangeLabel = computed(() => {
@@ -236,8 +238,8 @@ onMounted(fetchReport)
       </div>
 
       <p class="text-sm text-stone-500">
-        Allocated from eligible sales of
-        <span class="font-semibold text-stone-700">{{ formatCurrency(breakdown.eligibleSales) }}</span>
+        Allocated from net revenue (sales − expenses) of
+        <span class="font-semibold text-stone-700">{{ formatCurrency(breakdown.netRevenue) }}</span>
         for {{ rangeLabel.toLowerCase() }}.
       </p>
     </template>

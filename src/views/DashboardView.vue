@@ -53,7 +53,8 @@ onMounted(fetchDashboard)
             Financial Summary
           </h2>
           <SavingsBreakdownCard
-            :eligible-sales="data.total_sales"
+            :total-sales="data.total_sales"
+            :total-expenses="data.total_expenses"
             :pos-sales="data.pos_sales_total"
             :manual-sales="data.manual_sales_total"
           />

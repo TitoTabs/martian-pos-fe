@@ -1,19 +1,29 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CreditCard, HandCoins, NotebookPen, PiggyBank, RotateCcw, Wallet } from 'lucide-vue-next'
+import {
+  CreditCard,
+  HandCoins,
+  NotebookPen,
+  PiggyBank,
+  Receipt,
+  RotateCcw,
+  TrendingUp,
+  Wallet,
+} from 'lucide-vue-next'
 
-import { SAVINGS_ALLOCATION, allocationBreakdown } from '@/utils/calculations'
+import { SAVINGS_ALLOCATION, allocationBreakdown, netRevenue } from '@/utils/calculations'
 import { formatCurrency } from '@/utils/format'
 
 const props = defineProps<{
-  /** Eligible sales (pastries excluded) used as the allocation base. */
-  eligibleSales: number
-  /** Optional POS vs manual split; when provided, both rows are shown above the eligible-sales total. */
+  totalSales: number
+  totalExpenses: number
+  /** Optional POS vs manual split; when provided, both rows are shown above the total. */
   posSales?: number
   manualSales?: number
 }>()
 
-const breakdown = computed(() => allocationBreakdown(props.eligibleSales))
+const revenue = computed(() => netRevenue(props.totalSales, props.totalExpenses))
+const breakdown = computed(() => allocationBreakdown(revenue.value))
 const showSplit = computed(() => props.posSales !== undefined && props.manualSales !== undefined)
 
 const pct = (fraction: number) => `${Math.round(fraction * 100)}%`
@@ -25,7 +35,7 @@ const pct = (fraction: number) => `${Math.round(fraction * 100)}%`
       <tbody class="divide-y divide-stone-100">
         <tr class="bg-stone-50">
           <td colspan="2" class="px-4 py-2 text-xs font-medium uppercase tracking-wide text-stone-500">
-            Eligible Sales
+            Revenue
           </td>
         </tr>
         <template v-if="showSplit">
@@ -49,18 +59,37 @@ const pct = (fraction: number) => `${Math.round(fraction * 100)}%`
           </tr>
         </template>
         <tr>
-          <td class="flex items-center gap-2 px-4 py-3 font-medium text-stone-900">
+          <td class="flex items-center gap-2 px-4 py-3 text-stone-600" :class="{ 'font-medium text-stone-900': showSplit }">
             <Wallet class="h-4 w-4 text-stone-400" />
-            Total Eligible Sales
+            Total Sales
           </td>
-          <td class="px-4 py-3 text-right font-semibold text-stone-900">
-            {{ formatCurrency(breakdown.eligibleSales) }}
+          <td class="px-4 py-3 text-right text-stone-900" :class="{ 'font-medium': showSplit }">
+            {{ formatCurrency(totalSales) }}
+          </td>
+        </tr>
+        <tr>
+          <td class="flex items-center gap-2 px-4 py-3 text-stone-600">
+            <Receipt class="h-4 w-4 text-stone-400" />
+            Total Expenses
+          </td>
+          <td class="px-4 py-3 text-right text-red-600">−{{ formatCurrency(totalExpenses) }}</td>
+        </tr>
+        <tr>
+          <td class="flex items-center gap-2 px-4 py-3 font-medium text-stone-900">
+            <TrendingUp class="h-4 w-4 text-stone-400" />
+            Net Revenue
+          </td>
+          <td
+            class="px-4 py-3 text-right font-semibold"
+            :class="revenue >= 0 ? 'text-stone-900' : 'text-red-600'"
+          >
+            {{ formatCurrency(revenue) }}
           </td>
         </tr>
 
         <tr class="bg-stone-50">
           <td colspan="2" class="px-4 py-2 text-xs font-medium uppercase tracking-wide text-stone-500">
-            Allocation Breakdown (of Eligible Sales)
+            Allocation Breakdown (of Net Revenue)
           </td>
         </tr>
         <tr>
