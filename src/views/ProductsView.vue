@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { LoaderCircle, Pencil, Plus, Power, Trash2, XCircle } from 'lucide-vue-next'
 
 import BaseModal from '@/components/BaseModal.vue'
+import Pagination from '@/components/Pagination.vue'
 import { useCatalogFilters } from '@/composables/useCatalogFilters'
 import { PRODUCT_CATEGORIES, type ProductCategory } from '@/constants/productCategories'
 import { useCrudList } from '@/composables/useCrudList'
+import { usePagination } from '@/composables/usePagination'
 import { useToast } from '@/composables/useToast'
 import { addonService } from '@/services/addonService'
 import { productService } from '@/services/productService'
@@ -25,7 +27,11 @@ const {
 } = useCrudList<Product, ProductPayload>({ ...productService, list: productService.listAll })
 
 const { sort, category, categories, filtered } = useCatalogFilters(products, PRODUCT_CATEGORIES)
+const paged = usePagination(filtered, 10)
 const toast = useToast()
+
+// Jump back to page 1 whenever a filter changes.
+watch([sort, category], paged.reset)
 
 const allAddons = ref<Addon[]>([])
 
@@ -132,7 +138,7 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody class="divide-y divide-stone-100">
-            <tr v-for="product in filtered" :key="product.id" class="hover:bg-stone-50">
+            <tr v-for="product in paged.paginated.value" :key="product.id" class="hover:bg-stone-50">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2.5">
                   <img
@@ -181,7 +187,7 @@ onMounted(async () => {
       <!-- Mobile cards -->
       <div class="space-y-3 md:hidden">
         <div
-          v-for="product in filtered"
+          v-for="product in paged.paginated.value"
           :key="product.id"
           class="rounded-lg border border-stone-200 bg-white p-4"
         >
@@ -234,6 +240,15 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+
+      <Pagination
+        v-model:page="paged.page.value"
+        v-model:per-page="paged.perPage.value"
+        :total-pages="paged.totalPages.value"
+        :total="paged.total.value"
+        :from="paged.from.value"
+        :to="paged.to.value"
+      />
     </template>
 
     <!-- Product form -->

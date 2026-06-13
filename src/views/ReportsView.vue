@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { LoaderCircle, XCircle } from 'lucide-vue-next'
 
+import Pagination from '@/components/Pagination.vue'
 import PeriodFilter from '@/components/PeriodFilter.vue'
 import SavingsBreakdownCard from '@/components/SavingsBreakdownCard.vue'
 import StatCard from '@/components/StatCard.vue'
+import { usePagination } from '@/composables/usePagination'
 import { useReports, type ReportTab } from '@/composables/useReports'
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format'
 
@@ -26,6 +28,23 @@ const tabs: { value: ReportTab; label: string }[] = [
   { value: 'inventory', label: 'Inventory' },
   { value: 'savings', label: 'Savings' },
 ]
+
+// Client-side pagination for each report table.
+const salesPaged = usePagination(computed(() => salesReport.value?.sales ?? []), 10)
+const adjustmentsPaged = usePagination(
+  computed(() => salesReport.value?.manual_adjustments ?? []),
+  10,
+)
+const expensesPaged = usePagination(computed(() => expensesReport.value?.expenses ?? []), 10)
+const inventoryPaged = usePagination(computed(() => inventoryReport.value?.items ?? []), 10)
+
+// Reset every table to page 1 when the period or tab changes.
+watch([period, tab], () => {
+  salesPaged.reset()
+  adjustmentsPaged.reset()
+  expensesPaged.reset()
+  inventoryPaged.reset()
+})
 
 onMounted(fetchReport)
 </script>
@@ -89,7 +108,7 @@ onMounted(fetchReport)
             </tr>
           </thead>
           <tbody class="divide-y divide-stone-100">
-            <tr v-for="sale in salesReport.sales" :key="sale.id" class="hover:bg-stone-50">
+            <tr v-for="sale in salesPaged.paginated.value" :key="sale.id" class="hover:bg-stone-50">
               <td class="px-4 py-3 text-stone-500">#{{ sale.id }}</td>
               <td class="px-4 py-3 text-stone-900">
                 <div v-for="item in sale.items" :key="item.id">
@@ -118,7 +137,7 @@ onMounted(fetchReport)
           No sales in this period.
         </p>
         <div
-          v-for="sale in salesReport.sales"
+          v-for="sale in salesPaged.paginated.value"
           :key="sale.id"
           class="rounded-lg border border-stone-200 bg-white p-4"
         >
@@ -140,6 +159,15 @@ onMounted(fetchReport)
         </div>
       </div>
 
+      <Pagination
+        v-model:page="salesPaged.page.value"
+        v-model:per-page="salesPaged.perPage.value"
+        :total-pages="salesPaged.totalPages.value"
+        :total="salesPaged.total.value"
+        :from="salesPaged.from.value"
+        :to="salesPaged.to.value"
+      />
+
       <h2 class="pt-2 text-sm font-medium uppercase tracking-wide text-stone-500">
         Manual Sales Adjustments
       </h2>
@@ -158,7 +186,7 @@ onMounted(fetchReport)
           </thead>
           <tbody class="divide-y divide-stone-100">
             <tr
-              v-for="adjustment in salesReport.manual_adjustments"
+              v-for="adjustment in adjustmentsPaged.paginated.value"
               :key="adjustment.id"
               class="hover:bg-stone-50"
             >
@@ -181,7 +209,7 @@ onMounted(fetchReport)
           No manual sales adjustments in this period.
         </p>
         <div
-          v-for="adjustment in salesReport.manual_adjustments"
+          v-for="adjustment in adjustmentsPaged.paginated.value"
           :key="adjustment.id"
           class="flex items-start justify-between gap-2 rounded-lg border border-stone-200 bg-white p-4"
         >
@@ -194,6 +222,15 @@ onMounted(fetchReport)
           </span>
         </div>
       </div>
+
+      <Pagination
+        v-model:page="adjustmentsPaged.page.value"
+        v-model:per-page="adjustmentsPaged.perPage.value"
+        :total-pages="adjustmentsPaged.totalPages.value"
+        :total="adjustmentsPaged.total.value"
+        :from="adjustmentsPaged.from.value"
+        :to="adjustmentsPaged.to.value"
+      />
     </template>
 
     <!-- Expenses report -->
@@ -217,7 +254,7 @@ onMounted(fetchReport)
             </tr>
           </thead>
           <tbody class="divide-y divide-stone-100">
-            <tr v-for="expense in expensesReport.expenses" :key="expense.id" class="hover:bg-stone-50">
+            <tr v-for="expense in expensesPaged.paginated.value" :key="expense.id" class="hover:bg-stone-50">
               <td class="px-4 py-3 font-medium text-stone-900">{{ expense.name }}</td>
               <td class="px-4 py-3 text-right text-stone-600">{{ formatCurrency(expense.amount) }}</td>
               <td class="px-4 py-3 text-right text-stone-600">{{ expense.quantity }}</td>
@@ -239,7 +276,7 @@ onMounted(fetchReport)
           No expenses in this period.
         </p>
         <div
-          v-for="expense in expensesReport.expenses"
+          v-for="expense in expensesPaged.paginated.value"
           :key="expense.id"
           class="flex items-start justify-between gap-2 rounded-lg border border-stone-200 bg-white p-4"
         >
@@ -255,6 +292,15 @@ onMounted(fetchReport)
           </span>
         </div>
       </div>
+
+      <Pagination
+        v-model:page="expensesPaged.page.value"
+        v-model:per-page="expensesPaged.perPage.value"
+        :total-pages="expensesPaged.totalPages.value"
+        :total="expensesPaged.total.value"
+        :from="expensesPaged.from.value"
+        :to="expensesPaged.to.value"
+      />
     </template>
 
     <!-- Inventory items report -->
@@ -274,7 +320,7 @@ onMounted(fetchReport)
             </tr>
           </thead>
           <tbody class="divide-y divide-stone-100">
-            <tr v-for="item in inventoryReport.items" :key="item.id" class="hover:bg-stone-50">
+            <tr v-for="item in inventoryPaged.paginated.value" :key="item.id" class="hover:bg-stone-50">
               <td class="px-4 py-3 font-medium text-stone-900">{{ item.name }}</td>
               <td class="px-4 py-3 text-stone-600">{{ item.category }}</td>
               <td
@@ -302,7 +348,7 @@ onMounted(fetchReport)
       <!-- Mobile cards -->
       <div class="space-y-3 md:hidden">
         <div
-          v-for="item in inventoryReport.items"
+          v-for="item in inventoryPaged.paginated.value"
           :key="item.id"
           class="rounded-lg border bg-white p-4"
           :class="item.stock <= item.min_stock ? 'border-amber-300' : 'border-stone-200'"
@@ -329,6 +375,15 @@ onMounted(fetchReport)
           </div>
         </div>
       </div>
+
+      <Pagination
+        v-model:page="inventoryPaged.page.value"
+        v-model:per-page="inventoryPaged.perPage.value"
+        :total-pages="inventoryPaged.totalPages.value"
+        :total="inventoryPaged.total.value"
+        :from="inventoryPaged.from.value"
+        :to="inventoryPaged.to.value"
+      />
     </template>
 
     <!-- Savings report -->
