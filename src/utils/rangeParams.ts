@@ -1,6 +1,13 @@
 import type { RangeQuery } from '@/types/report'
 
-/** Build the query params the API expects from a RangeQuery. */
+/**
+ * Build the query params the API expects from a RangeQuery. A custom range
+ * is sent as start_date/end_date (the backend resolves a custom range from
+ * the presence of both dates); otherwise the preset period keyword is used.
+ */
 export function rangeParams(query: RangeQuery): Record<string, string> {
+  if (query.startDate && query.endDate) {
+    return { start_date: query.startDate, end_date: query.endDate }
+  }
   return { period: query.period ?? 'today' }
 }

@@ -53,3 +53,12 @@ export function periodRangeLabel(period: Period): string {
 
   return ''
 }
+
+/** Label for an explicit custom range, e.g. "June 1, 2026 - June 14, 2026". */
+export function customRangeLabel(startDate: string, endDate: string): string {
+  const fmt = (iso: string) => {
+    const [y, m, d] = iso.split('-').map(Number)
+    return label(y, m - 1, d)
+  }
+  return `${fmt(startDate)} - ${fmt(endDate)}`
+}

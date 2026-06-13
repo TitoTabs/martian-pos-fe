@@ -1,36 +1,75 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import type { Period, RangeQuery } from '@/types/report'
 
+const props = withDefaults(defineProps<{ allowCustom?: boolean }>(), { allowCustom: false })
+
 const emit = defineEmits<{ change: [query: RangeQuery] }>()
 
-const options: { value: Period; label: string }[] = [
+type Filter = Period | 'custom'
+
+const options = computed<{ value: Filter; label: string }[]>(() => [
   { value: 'today', label: 'Daily' },
   { value: 'week', label: 'Weekly' },
   { value: 'month', label: 'Monthly' },
   { value: 'year', label: 'Yearly' },
-]
+  ...(props.allowCustom ? [{ value: 'custom' as const, label: 'Custom' }] : []),
+])
 
-const selected = ref<Period>('today')
+// Default the date inputs to today in Manila.
+const manilaToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date())
 
-watch(selected, () => emit('change', { period: selected.value }))
+const selected = ref<Filter>('today')
+const startDate = ref(manilaToday)
+const endDate = ref(manilaToday)
+
+const customValid = computed(
+  () => !!startDate.value && !!endDate.value && endDate.value >= startDate.value,
+)
+
+// Emit the resolved range when the selection changes (skip invalid custom ranges).
+watch([selected, startDate, endDate], () => {
+  if (selected.value === 'custom') {
+    if (customValid.value) emit('change', { startDate: startDate.value, endDate: endDate.value })
+  } else {
+    emit('change', { period: selected.value })
+  }
+})
 </script>
 
 <template>
-  <div
-    class="scroll-touch inline-flex max-w-full overflow-x-auto rounded-lg border border-stone-200 bg-white p-1"
-  >
-    <button
-      v-for="option in options"
-      :key="option.value"
-      class="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium"
-      :class="
-        selected === option.value ? 'bg-mars-600 text-white' : 'text-stone-600 hover:bg-stone-100'
-      "
-      @click="selected = option.value"
+  <div class="flex flex-wrap items-center gap-2">
+    <div
+      class="scroll-touch inline-flex max-w-full overflow-x-auto rounded-lg border border-stone-200 bg-white p-1"
     >
-      {{ option.label }}
-    </button>
+      <button
+        v-for="option in options"
+        :key="option.value"
+        class="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium"
+        :class="
+          selected === option.value ? 'bg-mars-600 text-white' : 'text-stone-600 hover:bg-stone-100'
+        "
+        @click="selected = option.value"
+      >
+        {{ option.label }}
+      </button>
+    </div>
+
+    <div v-if="allowCustom && selected === 'custom'" class="flex items-center gap-2">
+      <input
+        v-model="startDate"
+        type="date"
+        :max="endDate"
+        class="rounded-lg border border-stone-300 px-3 py-1.5 text-base"
+      />
+      <span class="text-stone-400">–</span>
+      <input
+        v-model="endDate"
+        type="date"
+        :min="startDate"
+        class="rounded-lg border border-stone-300 px-3 py-1.5 text-base"
+      />
+    </div>
   </div>
 </template>
