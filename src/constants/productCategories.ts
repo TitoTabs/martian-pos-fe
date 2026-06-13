@@ -7,6 +7,7 @@ export const PRODUCT_CATEGORIES = [
   'Non Coffee',
   'Matcha Series',
   'Refreshers',
+  'Pastries',
 ] as const
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
