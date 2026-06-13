@@ -1,12 +1,12 @@
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
 import { dashboardService } from '@/services/dashboardService'
 import type { ApiError } from '@/types/api'
-import type { DashboardData, Period } from '@/types/report'
+import type { DashboardData, RangeQuery } from '@/types/report'
 import { netRevenue } from '@/utils/calculations'
 
 export function useDashboard() {
-  const period = ref<Period>('today')
+  const query = ref<RangeQuery>({ period: 'today' })
   const data = ref<DashboardData | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -15,7 +15,7 @@ export function useDashboard() {
     loading.value = true
     error.value = null
     try {
-      data.value = await dashboardService.get(period.value)
+      data.value = await dashboardService.get(query.value)
     } catch (e) {
       error.value = (e as ApiError).message
     } finally {
@@ -23,12 +23,16 @@ export function useDashboard() {
     }
   }
 
-  /** Net profit = net revenue = sales − expenses for the selected period. */
+  /** Apply a new range (preset or custom) and refetch. */
+  function setRange(next: RangeQuery) {
+    query.value = next
+    fetchDashboard()
+  }
+
+  /** Net profit = net revenue = sales − expenses for the selected range. */
   const profit = computed(() =>
     data.value ? netRevenue(data.value.total_sales, data.value.total_expenses) : 0,
   )
 
-  watch(period, fetchDashboard)
-
-  return { period, data, loading, error, profit, fetchDashboard }
+  return { query, data, loading, error, profit, fetchDashboard, setRange }
 }

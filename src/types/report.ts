@@ -5,6 +5,13 @@ import type { Sale } from '@/types/sale'
 
 export type Period = 'today' | 'week' | 'month' | 'year'
 
+/** A report range: either a preset period, or an explicit custom range (YYYY-MM-DD). */
+export interface RangeQuery {
+  period?: Period
+  startDate?: string
+  endDate?: string
+}
+
 export interface SalesSummary {
   pos_sales_total: number
   manual_sales_total: number

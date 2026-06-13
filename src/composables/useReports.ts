@@ -5,7 +5,7 @@ import type { ApiError } from '@/types/api'
 import type {
   ExpensesReport,
   InventoryReport,
-  Period,
+  RangeQuery,
   SalesReport,
   SavingsReport,
 } from '@/types/report'
@@ -13,7 +13,7 @@ import type {
 export type ReportTab = 'sales' | 'expenses' | 'inventory' | 'savings'
 
 export function useReports() {
-  const period = ref<Period>('today')
+  const query = ref<RangeQuery>({ period: 'today' })
   const tab = ref<ReportTab>('sales')
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -29,16 +29,16 @@ export function useReports() {
     try {
       switch (tab.value) {
         case 'sales':
-          salesReport.value = await reportService.sales(period.value)
+          salesReport.value = await reportService.sales(query.value)
           break
         case 'expenses':
-          expensesReport.value = await reportService.expenses(period.value)
+          expensesReport.value = await reportService.expenses(query.value)
           break
         case 'inventory':
-          inventoryReport.value = await reportService.inventory(period.value)
+          inventoryReport.value = await reportService.inventory(query.value)
           break
         case 'savings':
-          savingsReport.value = await reportService.savings({ period: period.value })
+          savingsReport.value = await reportService.savings(query.value)
           break
       }
     } catch (e) {
@@ -48,10 +48,16 @@ export function useReports() {
     }
   }
 
-  watch([period, tab], fetchReport)
+  /** Apply a new range (preset or custom) and refetch the active tab. */
+  function setRange(next: RangeQuery) {
+    query.value = next
+    fetchReport()
+  }
+
+  watch(tab, fetchReport)
 
   return {
-    period,
+    query,
     tab,
     loading,
     error,
@@ -60,5 +66,6 @@ export function useReports() {
     inventoryReport,
     savingsReport,
     fetchReport,
+    setRange,
   }
 }

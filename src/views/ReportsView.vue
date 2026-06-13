@@ -3,7 +3,7 @@ import { computed, onMounted, watch } from 'vue'
 import { LoaderCircle, XCircle } from 'lucide-vue-next'
 
 import Pagination from '@/components/Pagination.vue'
-import PeriodFilter from '@/components/PeriodFilter.vue'
+import RangeFilter from '@/components/RangeFilter.vue'
 import SavingsBreakdownCard from '@/components/SavingsBreakdownCard.vue'
 import StatCard from '@/components/StatCard.vue'
 import { usePagination } from '@/composables/usePagination'
@@ -11,7 +11,7 @@ import { useReports, type ReportTab } from '@/composables/useReports'
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format'
 
 const {
-  period,
+  query,
   tab,
   loading,
   error,
@@ -20,6 +20,7 @@ const {
   inventoryReport,
   savingsReport,
   fetchReport,
+  setRange,
 } = useReports()
 
 const tabs: { value: ReportTab; label: string }[] = [
@@ -38,8 +39,8 @@ const adjustmentsPaged = usePagination(
 const expensesPaged = usePagination(computed(() => expensesReport.value?.expenses ?? []), 10)
 const inventoryPaged = usePagination(computed(() => inventoryReport.value?.items ?? []), 10)
 
-// Reset every table to page 1 when the period or tab changes.
-watch([period, tab], () => {
+// Reset every table to page 1 when the range or tab changes.
+watch([query, tab], () => {
   salesPaged.reset()
   adjustmentsPaged.reset()
   expensesPaged.reset()
@@ -53,7 +54,7 @@ onMounted(fetchReport)
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-4">
       <h1 class="text-2xl font-semibold text-stone-900">Reports</h1>
-      <PeriodFilter v-model="period" />
+      <RangeFilter @change="setRange" />
     </div>
 
     <div class="inline-flex max-w-full overflow-x-auto rounded-lg border border-stone-200 bg-white p-1">
