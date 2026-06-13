@@ -6,12 +6,13 @@ import type {
   SalesReport,
   SavingsReport,
 } from '@/types/report'
+import type { PaymentMethod } from '@/types/sale'
 import { rangeParams } from '@/utils/rangeParams'
 
 export const reportService = {
-  async sales(query: RangeQuery): Promise<SalesReport> {
+  async sales(query: RangeQuery, paymentMethod?: PaymentMethod): Promise<SalesReport> {
     const { data } = await api.get<{ data: SalesReport }>('/reports/sales', {
-      params: rangeParams(query),
+      params: { ...rangeParams(query), ...(paymentMethod ? { payment_method: paymentMethod } : {}) },
     })
     return data.data
   },

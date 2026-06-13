@@ -13,6 +13,7 @@ import { formatCurrency, formatDate, formatDateTime } from '@/utils/format'
 const {
   query,
   tab,
+  paymentMethod,
   loading,
   error,
   salesReport,
@@ -22,6 +23,13 @@ const {
   fetchReport,
   setRange,
 } = useReports()
+
+const paymentOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'cash', label: 'Cash' },
+  { value: 'gcash', label: 'GCash' },
+  { value: 'card', label: 'Card' },
+] as const
 
 const tabs: { value: ReportTab; label: string }[] = [
   { value: 'sales', label: 'Sales' },
@@ -39,8 +47,8 @@ const adjustmentsPaged = usePagination(
 const expensesPaged = usePagination(computed(() => expensesReport.value?.expenses ?? []), 10)
 const inventoryPaged = usePagination(computed(() => inventoryReport.value?.items ?? []), 10)
 
-// Reset every table to page 1 when the range or tab changes.
-watch([query, tab], () => {
+// Reset every table to page 1 when the range, tab, or payment filter changes.
+watch([query, tab, paymentMethod], () => {
   salesPaged.reset()
   adjustmentsPaged.reset()
   expensesPaged.reset()
@@ -92,7 +100,20 @@ onMounted(fetchReport)
         <StatCard label="Items Sold" :value="String(salesReport.total_items_sold)" />
       </div>
 
-      <h2 class="pt-2 text-sm font-medium uppercase tracking-wide text-stone-500">POS Sales</h2>
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+        <h2 class="text-sm font-medium uppercase tracking-wide text-stone-500">POS Sales</h2>
+        <label class="flex items-center gap-1.5 text-sm text-stone-500">
+          Payment
+          <select
+            v-model="paymentMethod"
+            class="rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm text-stone-700"
+          >
+            <option v-for="opt in paymentOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </option>
+          </select>
+        </label>
+      </div>
       <!-- Desktop table -->
       <div class="hidden overflow-hidden rounded-lg border border-stone-200 bg-white md:block">
         <p v-if="salesReport.sales.length === 0" class="p-4 text-sm text-stone-500">

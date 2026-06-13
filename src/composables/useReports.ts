@@ -9,12 +9,15 @@ import type {
   SalesReport,
   SavingsReport,
 } from '@/types/report'
+import type { PaymentMethod } from '@/types/sale'
 
 export type ReportTab = 'sales' | 'expenses' | 'inventory' | 'savings'
+export type PaymentFilter = PaymentMethod | 'all'
 
 export function useReports() {
   const query = ref<RangeQuery>({ period: 'today' })
   const tab = ref<ReportTab>('sales')
+  const paymentMethod = ref<PaymentFilter>('all')
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -29,7 +32,10 @@ export function useReports() {
     try {
       switch (tab.value) {
         case 'sales':
-          salesReport.value = await reportService.sales(query.value)
+          salesReport.value = await reportService.sales(
+            query.value,
+            paymentMethod.value === 'all' ? undefined : paymentMethod.value,
+          )
           break
         case 'expenses':
           expensesReport.value = await reportService.expenses(query.value)
@@ -55,10 +61,15 @@ export function useReports() {
   }
 
   watch(tab, fetchReport)
+  // Re-fetch sales when the payment filter changes.
+  watch(paymentMethod, () => {
+    if (tab.value === 'sales') fetchReport()
+  })
 
   return {
     query,
     tab,
+    paymentMethod,
     loading,
     error,
     salesReport,
