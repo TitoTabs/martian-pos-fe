@@ -3,12 +3,10 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { CheckCircle2, ChevronUp, X, XCircle } from 'lucide-vue-next'
 
 import PosCart from '@/components/PosCart.vue'
-import ProductAddonModal from '@/components/ProductAddonModal.vue'
 import { usePosCart } from '@/composables/usePosCart'
 import { useToast } from '@/composables/useToast'
 import { PRODUCT_CATEGORIES, type ProductCategory } from '@/constants/productCategories'
 import { productService } from '@/services/productService'
-import type { Addon } from '@/types/addon'
 import type { ApiError } from '@/types/api'
 import type { Product } from '@/types/product'
 import { formatCurrency } from '@/utils/format'
@@ -24,7 +22,6 @@ const cart = usePosCart()
 const { success: toastSuccess } = useToast()
 
 // Tactile feedback state.
-const addonProduct = ref<Product | null>(null) // product whose add-on picker is open
 const justAddedId = ref<number | null>(null) // card flashing its "added" state
 const cartPulse = ref(false) // brief highlight on the cart panel/bar
 const badgeBounce = ref(false) // cart-count badge bounce
@@ -40,11 +37,6 @@ const groupedProducts = computed(() =>
   ),
 )
 
-/** Active add-ons offered for a product. */
-function availableAddons(product: Product): Addon[] {
-  return product.addons.filter((addon) => addon.is_active)
-}
-
 /** Fire the visual "added" feedback: card flash, toast, cart highlight. */
 function flashAdded(productId: number, label: string) {
   justAddedId.value = productId
@@ -58,21 +50,9 @@ function flashAdded(productId: number, label: string) {
   toastSuccess(`Added to Cart — ${label}`)
 }
 
-/** Tapping a product: open the add-on picker if it has any, else quick-add. */
+/** Tapping a product adds it straight to the cart; add-ons are chosen there. */
 function onProductTap(product: Product) {
-  if (availableAddons(product).length > 0) {
-    addonProduct.value = product
-    return
-  }
   cart.addProduct(product)
-  flashAdded(product.id, product.name)
-}
-
-function onAddonConfirm(payload: { addons: Addon[]; quantity: number }) {
-  const product = addonProduct.value
-  if (!product) return
-  cart.addConfigured(product, payload.addons, payload.quantity)
-  addonProduct.value = null
   flashAdded(product.id, product.name)
 }
 
@@ -199,10 +179,7 @@ onMounted(fetchCatalog)
                 class="mb-2 aspect-square w-full rounded-lg object-cover sm:h-24"
               />
               <p class="font-semibold leading-snug text-stone-900">{{ product.name }}</p>
-              <p class="text-xs text-stone-500 sm:text-sm">
-                {{ product.category }}
-                <span v-if="availableAddons(product).length" class="text-mars-600">· add-ons</span>
-              </p>
+              <p class="text-xs text-stone-500 sm:text-sm">{{ product.category }}</p>
               <p class="mt-auto pt-2 text-base font-bold text-mars-600 sm:text-lg">
                 {{ formatCurrency(product.price) }}
               </p>
@@ -278,12 +255,5 @@ onMounted(fetchCatalog)
         <span>Checkout — {{ formatCurrency(cart.total.value) }}</span>
       </button>
     </div>
-
-    <!-- Add-on selection picker -->
-    <ProductAddonModal
-      :product="addonProduct"
-      @confirm="onAddonConfirm"
-      @close="addonProduct = null"
-    />
   </div>
 </template>

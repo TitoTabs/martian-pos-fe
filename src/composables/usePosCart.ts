@@ -33,32 +33,6 @@ export function usePosCart() {
     }
   }
 
-  /** Stable signature for a line's add-on selection, order-independent. */
-  function addonSignature(addons: Addon[]): string {
-    return addons
-      .map((addon) => addon.id)
-      .sort((a, b) => a - b)
-      .join(',')
-  }
-
-  /**
-   * Add a product with an explicit add-on selection (from the picker).
-   * Lines sharing the same product *and* identical add-ons are merged so
-   * tapping the same configured drink twice bumps the quantity instead of
-   * stacking duplicate rows.
-   */
-  function addConfigured(product: Product, addons: Addon[], quantity = 1) {
-    const signature = addonSignature(addons)
-    const existing = lines.value.find(
-      (line) => line.product.id === product.id && addonSignature(line.addons) === signature,
-    )
-    if (existing) {
-      existing.quantity += quantity
-    } else {
-      lines.value.push({ product, quantity, addons: [...addons] })
-    }
-  }
-
   function removeLine(line: CartLine) {
     lines.value = lines.value.filter((l) => l !== line)
   }
@@ -149,7 +123,6 @@ export function usePosCart() {
     itemCount,
     isEmpty,
     addProduct,
-    addConfigured,
     removeLine,
     setQuantity,
     toggleAddon,
