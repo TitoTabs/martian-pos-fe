@@ -38,7 +38,7 @@ export function useReports() {
           inventoryReport.value = await reportService.inventory(period.value)
           break
         case 'savings':
-          savingsReport.value = await reportService.savings(period.value)
+          savingsReport.value = await reportService.savings({ period: period.value })
           break
       }
     } catch (e) {

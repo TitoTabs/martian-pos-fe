@@ -7,6 +7,13 @@ import type {
   SavingsReport,
 } from '@/types/report'
 
+/** Either a preset period, or an explicit custom date range (YYYY-MM-DD). */
+export interface SavingsQuery {
+  period?: Period
+  startDate?: string
+  endDate?: string
+}
+
 export const reportService = {
   async sales(period: Period): Promise<SalesReport> {
     const { data } = await api.get<{ data: SalesReport }>('/reports/sales', {
@@ -29,10 +36,12 @@ export const reportService = {
     return data.data
   },
 
-  async savings(period: Period): Promise<SavingsReport> {
-    const { data } = await api.get<{ data: SavingsReport }>('/reports/savings', {
-      params: { period },
-    })
+  async savings(query: SavingsQuery): Promise<SavingsReport> {
+    const params =
+      query.startDate && query.endDate
+        ? { start_date: query.startDate, end_date: query.endDate }
+        : { period: query.period ?? 'today' }
+    const { data } = await api.get<{ data: SavingsReport }>('/reports/savings', { params })
     return data.data
   },
 }
