@@ -1,17 +1,23 @@
 import type { Period } from '@/types/report'
 
 const TZ = 'Asia/Manila'
+const DEFAULT_SHIFT_START = '21:00'
 
-/** Today's calendar date in Manila, as integers (month is 0-based). */
-function manilaToday(): { y: number; m: number; d: number } {
+/** Current date + minutes-since-midnight in Manila. */
+function manilaNow(): { y: number; m: number; d: number; minutes: number } {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: TZ,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
   }).formatToParts(new Date())
   const part = (type: string) => Number(parts.find((p) => p.type === type)!.value)
-  return { y: part('year'), m: part('month') - 1, d: part('day') }
+  // hour12:false can yield "24" at midnight in some engines; normalise to 0.
+  const hour = part('hour') % 24
+  return { y: part('year'), m: part('month') - 1, d: part('day'), minutes: hour * 60 + part('minute') }
 }
 
 /** Format a calendar date as e.g. "June 14, 2026" (no timezone drift). */
@@ -25,18 +31,34 @@ function label(y: number, m: number, d: number): string {
 }
 
 /**
- * Human label for the date range a period resolves to, in Asia/Manila —
- * matching the backend's range() (week starts Monday, ends Sunday).
+ * The current business date for a shift starting at `startTime`: today if the
+ * shift has already started today, otherwise yesterday (covers the
+ * post-midnight tail of the shift and daytime hours). Mirrors the backend.
  */
-export function periodRangeLabel(period: Period): string {
-  const { y, m, d } = manilaToday()
+function businessDate(startTime: string): Date {
+  const { y, m, d, minutes } = manilaNow()
+  const [sh, sm] = startTime.split(':').map(Number)
+  const base = new Date(Date.UTC(y, m, d))
+  if (minutes < sh * 60 + sm) base.setUTCDate(base.getUTCDate() - 1)
+  return base
+}
+
+/**
+ * Label for the business date(s) a period resolves to (Asia/Manila), matching
+ * the backend's shift logic (week starts Monday). Only the dates are shown —
+ * the shift times bound each day but aren't part of the label.
+ */
+export function periodRangeLabel(period: Period, startTime: string = DEFAULT_SHIFT_START): string {
+  const base = businessDate(startTime)
+  const y = base.getUTCFullYear()
+  const m = base.getUTCMonth()
+  const d = base.getUTCDate()
 
   switch (period) {
     case 'today':
       return label(y, m, d)
     case 'week': {
-      const base = new Date(Date.UTC(y, m, d))
-      const daysSinceMonday = (base.getUTCDay() + 6) % 7 // Sun=0 -> 6, Mon=1 -> 0
+      const daysSinceMonday = (base.getUTCDay() + 6) % 7
       const start = new Date(base)
       start.setUTCDate(base.getUTCDate() - daysSinceMonday)
       const end = new Date(start)

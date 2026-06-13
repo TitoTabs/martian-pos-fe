@@ -14,7 +14,7 @@ const { query, data, loading, error, profit, fetchDashboard, setRange } = useDas
 const rangeLabel = computed(() =>
   query.value.startDate && query.value.endDate
     ? customRangeLabel(query.value.startDate, query.value.endDate)
-    : periodRangeLabel(query.value.period ?? 'today'),
+    : periodRangeLabel(query.value.period ?? 'today', query.value.startTime ?? '21:00'),
 )
 
 onMounted(fetchDashboard)

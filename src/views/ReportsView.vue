@@ -35,7 +35,7 @@ const paymentOptions = [
 const rangeLabel = computed(() =>
   query.value.startDate && query.value.endDate
     ? customRangeLabel(query.value.startDate, query.value.endDate)
-    : periodRangeLabel(query.value.period ?? 'today'),
+    : periodRangeLabel(query.value.period ?? 'today', query.value.startTime ?? '21:00'),
 )
 
 const tabs: { value: ReportTab; label: string }[] = [

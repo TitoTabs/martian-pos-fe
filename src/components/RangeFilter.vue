@@ -17,23 +17,29 @@ const options = computed<{ value: Filter; label: string }[]>(() => [
   ...(props.allowCustom ? [{ value: 'custom' as const, label: 'Custom' }] : []),
 ])
 
-// Default the date inputs to today in Manila.
 const manilaToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date())
 
 const selected = ref<Filter>('today')
 const startDate = ref(manilaToday)
 const endDate = ref(manilaToday)
 
+// Business shift window (default 9:00 PM → 3:00 AM next day).
+const startTime = ref('21:00')
+const endTime = ref('03:00')
+
 const customValid = computed(
   () => !!startDate.value && !!endDate.value && endDate.value >= startDate.value,
 )
 
-// Emit the resolved range when the selection changes (skip invalid custom ranges).
-watch([selected, startDate, endDate], () => {
+// Emit the resolved range whenever any control changes (skip invalid custom).
+watch([selected, startDate, endDate, startTime, endTime], () => {
+  const shift = { startTime: startTime.value, endTime: endTime.value }
   if (selected.value === 'custom') {
-    if (customValid.value) emit('change', { startDate: startDate.value, endDate: endDate.value })
+    if (customValid.value) {
+      emit('change', { startDate: startDate.value, endDate: endDate.value, ...shift })
+    }
   } else {
-    emit('change', { period: selected.value })
+    emit('change', { period: selected.value, ...shift })
   }
 })
 </script>
@@ -71,5 +77,21 @@ watch([selected, startDate, endDate], () => {
         class="rounded-lg border border-stone-300 px-3 py-1.5 text-base"
       />
     </div>
+
+    <!-- Business shift window (crosses midnight when end ≤ start). -->
+    <label class="flex items-center gap-1.5 text-xs text-stone-500">
+      <span class="hidden sm:inline">Shift</span>
+      <input
+        v-model="startTime"
+        type="time"
+        class="rounded-lg border border-stone-300 px-2 py-1.5 text-sm"
+      />
+      <span class="text-stone-400">–</span>
+      <input
+        v-model="endTime"
+        type="time"
+        class="rounded-lg border border-stone-300 px-2 py-1.5 text-sm"
+      />
+    </label>
   </div>
 </template>

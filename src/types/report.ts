@@ -5,11 +5,16 @@ import type { Sale } from '@/types/sale'
 
 export type Period = 'today' | 'week' | 'month' | 'year'
 
-/** A report range: a preset period, or an explicit custom range (YYYY-MM-DD). */
+/**
+ * A report range: a preset period or an explicit custom range (YYYY-MM-DD),
+ * plus an optional business-shift window (HH:MM, 24h) that can cross midnight.
+ */
 export interface RangeQuery {
   period?: Period
   startDate?: string
   endDate?: string
+  startTime?: string
+  endTime?: string
 }
 
 export interface SalesSummary {
