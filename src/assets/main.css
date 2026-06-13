@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/*
+ * Kape Martian theme — Mars-inspired warm palette.
+ * mars: warm orange → rust red → dark brown
+ * Neutral text/borders use Tailwind's warm `stone` scale.
+ */
+@theme {
+  --color-mars-50: #fdf7f0;
+  --color-mars-100: #faeddd;
+  --color-mars-200: #f4d7b9;
+  --color-mars-300: #ecba8c;
+  --color-mars-400: #e3955d;
+  --color-mars-500: #db7a3d;
+  --color-mars-600: #c75f2a;
+  --color-mars-700: #a64a24;
+  --color-mars-800: #853c24;
+  --color-mars-900: #6c3320;
+  --color-mars-950: #3a1910;
+}
