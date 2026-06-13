@@ -7,11 +7,17 @@ import type { Addon } from '@/types/addon'
 import type { OrderType, PaymentMethod } from '@/types/sale'
 import { formatCurrency } from '@/utils/format'
 
-defineProps<{
+const props = defineProps<{
   cart: PosCartStore
 }>()
 
 defineEmits<{ checkout: [] }>()
+
+/** Parse the cash field into a number, or null when empty/invalid. */
+function onCashInput(value: string) {
+  const amount = parseFloat(value)
+  props.cart.cashReceived.value = Number.isFinite(amount) ? amount : null
+}
 
 /** Add-ons offered for a cart line: the product's own active add-ons. */
 function availableAddons(line: CartLine): Addon[] {
@@ -175,6 +181,43 @@ const orderTypes: { value: OrderType; label: string }[] = [
         </div>
       </div>
 
+      <!-- Cash tendering: amount received + automatic change -->
+      <div v-if="cart.paymentMethod.value === 'cash'">
+        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">
+          Cash Received
+        </label>
+        <input
+          :value="cart.cashReceived.value ?? ''"
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="0.01"
+          placeholder="0.00"
+          class="w-full rounded-lg border px-3 py-2.5 text-base"
+          :class="
+            cart.cashReceived.value !== null && !cart.cashSufficient.value
+              ? 'border-red-400'
+              : 'border-stone-300'
+          "
+          @input="onCashInput(($event.target as HTMLInputElement).value)"
+        />
+
+        <div
+          v-if="cart.cashReceived.value !== null && cart.cashSufficient.value"
+          class="mt-2 flex items-center justify-between rounded-lg bg-green-50 px-3 py-2 text-base font-bold text-green-700"
+        >
+          <span>Change</span>
+          <span>{{ formatCurrency(cart.change.value) }}</span>
+        </div>
+        <p
+          v-else-if="cart.cashReceived.value !== null"
+          class="mt-2 flex items-center gap-1.5 text-sm text-red-600"
+        >
+          <XCircle class="h-4 w-4 shrink-0" />
+          Cash received is less than the total.
+        </p>
+      </div>
+
       <p v-if="cart.error.value" class="flex items-center gap-1.5 text-sm text-red-600">
         <XCircle class="h-4 w-4 shrink-0" />
         {{ cart.error.value }}
@@ -182,7 +225,7 @@ const orderTypes: { value: OrderType; label: string }[] = [
 
       <button
         class="flex w-full items-center justify-center gap-2 rounded-lg bg-mars-600 px-4 py-3 font-medium text-white hover:bg-mars-700 disabled:opacity-50"
-        :disabled="cart.submitting.value"
+        :disabled="cart.submitting.value || !cart.cashSufficient.value"
         @click="$emit('checkout')"
       >
         <LoaderCircle v-if="cart.submitting.value" class="h-4 w-4 animate-spin" />

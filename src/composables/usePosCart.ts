@@ -20,6 +20,7 @@ export function usePosCart() {
   const customerName = ref('')
   const orderType = ref<OrderType>('dine_in')
   const notes = ref('')
+  const cashReceived = ref<number | null>(null)
   const submitting = ref(false)
   const error = ref<string | null>(null)
   const lastSale = ref<Sale | null>(null)
@@ -68,12 +69,28 @@ export function usePosCart() {
   const itemCount = computed(() => lines.value.reduce((sum, line) => sum + line.quantity, 0))
   const isEmpty = computed(() => lines.value.length === 0)
 
+  /** Cash paid minus the total. Only meaningful for cash payments. */
+  const change = computed(() =>
+    cashReceived.value === null ? 0 : Math.max(0, cashReceived.value - total.value),
+  )
+
+  /**
+   * Whether payment can be completed. Card/GCash always pass; cash requires
+   * the received amount to cover the total.
+   */
+  const cashSufficient = computed(
+    () =>
+      paymentMethod.value !== 'cash' ||
+      (cashReceived.value !== null && cashReceived.value >= total.value),
+  )
+
   function clear() {
     lines.value = []
     paymentMethod.value = 'cash'
     customerName.value = ''
     orderType.value = 'dine_in'
     notes.value = ''
+    cashReceived.value = null
     error.value = null
   }
 
@@ -82,6 +99,11 @@ export function usePosCart() {
 
     if (!customerName.value.trim()) {
       error.value = 'Customer / order name is required.'
+      return null
+    }
+
+    if (!cashSufficient.value) {
+      error.value = 'Cash received is less than the total.'
       return null
     }
 
@@ -116,12 +138,15 @@ export function usePosCart() {
     customerName,
     orderType,
     notes,
+    cashReceived,
     submitting,
     error,
     lastSale,
     total,
     itemCount,
     isEmpty,
+    change,
+    cashSufficient,
     addProduct,
     removeLine,
     setQuantity,
