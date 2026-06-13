@@ -13,7 +13,7 @@ const links = [
 
 <template>
   <div class="min-h-screen bg-mars-50">
-    <header class="sticky top-0 z-20 border-b border-mars-200 bg-white">
+    <header class="safe-top sticky top-0 z-20 border-b border-mars-200 bg-white">
       <div class="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:gap-6">
         <RouterLink to="/pos" class="flex shrink-0 items-center gap-2 font-bold text-mars-950">
           <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-mars-600">

@@ -98,7 +98,7 @@ onMounted(() => auth.fetchUser())
 
     <!-- Mobile header -->
     <div class="flex min-h-screen flex-1 flex-col">
-      <header class="sticky top-0 z-20 border-b border-mars-900 bg-mars-950 lg:hidden">
+      <header class="safe-top sticky top-0 z-20 border-b border-mars-900 bg-mars-950 lg:hidden">
         <div class="flex h-13 items-center justify-between gap-2 px-4 py-2">
           <RouterLink to="/admin/dashboard" class="flex items-center gap-2 font-bold text-mars-50">
             <Coffee class="h-5 w-5 text-mars-400" />
