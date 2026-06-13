@@ -77,3 +77,51 @@ a {
 .scroll-touch::-webkit-scrollbar {
   display: none;
 }
+
+/*
+ * Micro-interactions for tactile POS feedback.
+ * badge-pop: a quick bounce when the cart count increases.
+ */
+@keyframes badge-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.4);
+  }
+  70% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-badge-pop {
+  animation: badge-pop 0.45s ease-out;
+}
+
+/* Smooth, native-feeling route transitions. */
+.page-enter-active,
+.page-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-badge-pop,
+  .page-enter-active,
+  .page-leave-active {
+    animation: none;
+    transition: none;
+  }
+}

@@ -55,7 +55,11 @@ const links = [
     </header>
 
     <main class="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </main>
   </div>
 </template>

@@ -123,7 +123,11 @@ onMounted(() => auth.fetchUser())
       </header>
 
       <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-8">
-        <RouterView />
+        <RouterView v-slot="{ Component }">
+          <Transition name="page" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </RouterView>
       </main>
     </div>
   </div>

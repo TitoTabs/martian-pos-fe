@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { CheckCircle2, ChevronUp, LoaderCircle, X, XCircle } from 'lucide-vue-next'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { CheckCircle2, ChevronUp, X, XCircle } from 'lucide-vue-next'
 
 import PosCart from '@/components/PosCart.vue'
+import ProductAddonModal from '@/components/ProductAddonModal.vue'
 import { usePosCart } from '@/composables/usePosCart'
+import { useToast } from '@/composables/useToast'
 import { PRODUCT_CATEGORIES, type ProductCategory } from '@/constants/productCategories'
 import { productService } from '@/services/productService'
+import type { Addon } from '@/types/addon'
 import type { ApiError } from '@/types/api'
 import type { Product } from '@/types/product'
 import { formatCurrency } from '@/utils/format'
@@ -18,6 +21,13 @@ const categoryFilter = ref<ProductCategory | 'all'>('all')
 const cartOpen = ref(false)
 
 const cart = usePosCart()
+const { success: toastSuccess } = useToast()
+
+// Tactile feedback state.
+const addonProduct = ref<Product | null>(null) // product whose add-on picker is open
+const justAddedId = ref<number | null>(null) // card flashing its "added" state
+const cartPulse = ref(false) // brief highlight on the cart panel/bar
+const badgeBounce = ref(false) // cart-count badge bounce
 
 const groupedProducts = computed(() =>
   PRODUCT_CATEGORIES.map((category) => ({
@@ -28,6 +38,54 @@ const groupedProducts = computed(() =>
       group.products.length > 0 &&
       (categoryFilter.value === 'all' || group.category === categoryFilter.value),
   ),
+)
+
+/** Active add-ons offered for a product. */
+function availableAddons(product: Product): Addon[] {
+  return product.addons.filter((addon) => addon.is_active)
+}
+
+/** Fire the visual "added" feedback: card flash, toast, cart highlight. */
+function flashAdded(productId: number, label: string) {
+  justAddedId.value = productId
+  setTimeout(() => {
+    if (justAddedId.value === productId) justAddedId.value = null
+  }, 900)
+
+  cartPulse.value = true
+  setTimeout(() => (cartPulse.value = false), 600)
+
+  toastSuccess(`Added to Cart — ${label}`)
+}
+
+/** Tapping a product: open the add-on picker if it has any, else quick-add. */
+function onProductTap(product: Product) {
+  if (availableAddons(product).length > 0) {
+    addonProduct.value = product
+    return
+  }
+  cart.addProduct(product)
+  flashAdded(product.id, product.name)
+}
+
+function onAddonConfirm(payload: { addons: Addon[]; quantity: number }) {
+  const product = addonProduct.value
+  if (!product) return
+  cart.addConfigured(product, payload.addons, payload.quantity)
+  addonProduct.value = null
+  flashAdded(product.id, product.name)
+}
+
+// Bounce the cart count badge whenever the number of items changes.
+watch(
+  () => cart.itemCount.value,
+  (next, prev) => {
+    if (next > (prev ?? 0)) {
+      badgeBounce.value = false
+      nextTick(() => (badgeBounce.value = true))
+      setTimeout(() => (badgeBounce.value = false), 500)
+    }
+  },
 )
 
 async function fetchCatalog() {
@@ -66,9 +124,26 @@ onMounted(fetchCatalog)
       {{ successMessage }}
     </div>
 
-    <div v-if="loading" class="flex items-center gap-2 text-stone-600">
-      <LoaderCircle class="h-5 w-5 animate-spin" />
-      Loading items…
+    <!-- Loading skeleton grid -->
+    <div v-if="loading" class="grid gap-6 lg:grid-cols-3">
+      <div class="space-y-3 lg:col-span-2">
+        <div class="flex gap-2">
+          <div v-for="n in 4" :key="n" class="h-9 w-20 shrink-0 animate-pulse rounded-full bg-stone-200" />
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          <div
+            v-for="n in 8"
+            :key="n"
+            class="animate-pulse rounded-xl border border-stone-200 bg-white p-3 sm:p-4"
+          >
+            <div class="mb-2 aspect-square w-full rounded-lg bg-stone-200 sm:h-24" />
+            <div class="h-4 w-3/4 rounded bg-stone-200" />
+            <div class="mt-2 h-3 w-1/2 rounded bg-stone-100" />
+            <div class="mt-3 h-4 w-1/3 rounded bg-stone-200" />
+          </div>
+        </div>
+      </div>
+      <div class="hidden h-72 animate-pulse rounded-lg bg-white lg:block" />
     </div>
 
     <div
@@ -109,8 +184,13 @@ onMounted(fetchCatalog)
             <button
               v-for="product in group.products"
               :key="product.id"
-              class="flex flex-col rounded-xl border border-stone-200 bg-white p-3 text-left transition active:scale-[0.98] active:bg-mars-50 hover:border-mars-300 hover:shadow-sm sm:p-4"
-              @click="cart.addProduct(product)"
+              class="relative flex flex-col overflow-hidden rounded-xl border bg-white p-3 text-left transition duration-150 active:scale-[0.97] active:bg-mars-50 hover:shadow-sm sm:p-4"
+              :class="
+                justAddedId === product.id
+                  ? 'border-green-400 ring-2 ring-green-300 shadow-md'
+                  : 'border-stone-200 hover:border-mars-300'
+              "
+              @click="onProductTap(product)"
             >
               <img
                 v-if="product.image"
@@ -119,17 +199,39 @@ onMounted(fetchCatalog)
                 class="mb-2 aspect-square w-full rounded-lg object-cover sm:h-24"
               />
               <p class="font-semibold leading-snug text-stone-900">{{ product.name }}</p>
-              <p class="text-xs text-stone-500 sm:text-sm">{{ product.category }}</p>
+              <p class="text-xs text-stone-500 sm:text-sm">
+                {{ product.category }}
+                <span v-if="availableAddons(product).length" class="text-mars-600">· add-ons</span>
+              </p>
               <p class="mt-auto pt-2 text-base font-bold text-mars-600 sm:text-lg">
                 {{ formatCurrency(product.price) }}
               </p>
+
+              <!-- "Added" confirmation overlay -->
+              <Transition
+                enter-active-class="transition duration-150 ease-out"
+                enter-from-class="opacity-0 scale-90"
+                leave-active-class="transition duration-200 ease-in"
+                leave-to-class="opacity-0"
+              >
+                <div
+                  v-if="justAddedId === product.id"
+                  class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-green-600/95 text-white"
+                >
+                  <CheckCircle2 class="h-8 w-8" />
+                  <span class="text-sm font-bold">Added to Cart</span>
+                </div>
+              </Transition>
             </button>
           </div>
         </div>
       </div>
 
       <!-- Cart: desktop sidebar -->
-      <div class="hidden lg:sticky lg:top-20 lg:block lg:self-start">
+      <div
+        class="hidden rounded-lg transition lg:sticky lg:top-20 lg:block lg:self-start"
+        :class="cartPulse ? 'ring-2 ring-mars-400 ring-offset-2' : ''"
+      >
         <PosCart :cart="cart" @checkout="completeSale" />
       </div>
     </div>
@@ -159,15 +261,29 @@ onMounted(fetchCatalog)
       class="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white px-4 pt-3 lg:hidden"
     >
       <button
-        class="flex w-full items-center justify-between gap-3 rounded-xl bg-mars-600 px-4 py-3.5 text-base font-semibold text-white active:bg-mars-700"
+        class="flex w-full items-center justify-between gap-3 rounded-xl bg-mars-600 px-4 py-3.5 text-base font-semibold text-white transition active:bg-mars-700"
+        :class="cartPulse ? 'ring-2 ring-mars-300 ring-offset-2' : ''"
         @click="cartOpen = true"
       >
         <span class="flex items-center gap-2">
           <ChevronUp class="h-5 w-5" />
-          {{ cart.itemCount.value }} {{ cart.itemCount.value === 1 ? 'item' : 'items' }}
+          <span
+            class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white px-1.5 text-sm font-bold text-mars-700"
+            :class="{ 'animate-badge-pop': badgeBounce }"
+          >
+            {{ cart.itemCount.value }}
+          </span>
+          {{ cart.itemCount.value === 1 ? 'item' : 'items' }}
         </span>
         <span>Checkout — {{ formatCurrency(cart.total.value) }}</span>
       </button>
     </div>
+
+    <!-- Add-on selection picker -->
+    <ProductAddonModal
+      :product="addonProduct"
+      @confirm="onAddonConfirm"
+      @close="addonProduct = null"
+    />
   </div>
 </template>
