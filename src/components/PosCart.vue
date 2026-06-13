@@ -55,19 +55,21 @@ const orderTypes: { value: OrderType; label: string }[] = [
         </div>
 
         <div class="mt-2 flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1">
             <button
-              class="rounded-md border border-stone-200 p-1.5 hover:bg-stone-50"
+              class="flex h-10 w-10 items-center justify-center rounded-lg border border-stone-200 active:bg-stone-100 hover:bg-stone-50"
+              aria-label="Decrease quantity"
               @click="cart.setQuantity(line, line.quantity - 1)"
             >
-              <Minus class="h-3.5 w-3.5" />
+              <Minus class="h-4 w-4" />
             </button>
-            <span class="w-7 text-center text-sm font-medium">{{ line.quantity }}</span>
+            <span class="w-9 text-center text-base font-semibold tabular-nums">{{ line.quantity }}</span>
             <button
-              class="rounded-md border border-stone-200 p-1.5 hover:bg-stone-50"
+              class="flex h-10 w-10 items-center justify-center rounded-lg border border-stone-200 active:bg-stone-100 hover:bg-stone-50"
+              aria-label="Increase quantity"
               @click="cart.setQuantity(line, line.quantity + 1)"
             >
-              <Plus class="h-3.5 w-3.5" />
+              <Plus class="h-4 w-4" />
             </button>
           </div>
 
@@ -79,10 +81,11 @@ const orderTypes: { value: OrderType; label: string }[] = [
               @toggle="cart.toggleAddon(line, $event)"
             />
             <button
-              class="rounded-md border border-stone-200 p-1.5 text-stone-400 hover:bg-stone-50 hover:text-red-600"
+              class="flex h-10 w-10 items-center justify-center rounded-lg border border-stone-200 text-stone-400 active:bg-stone-100 hover:bg-stone-50 hover:text-red-600"
+              aria-label="Remove item"
               @click="cart.removeLine(line)"
             >
-              <Trash2 class="h-3.5 w-3.5" />
+              <Trash2 class="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -114,7 +117,7 @@ const orderTypes: { value: OrderType; label: string }[] = [
           v-model="cart.customerName.value"
           type="text"
           placeholder="e.g. Jefferson"
-          class="w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
+          class="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base"
         />
       </div>
 
@@ -126,10 +129,10 @@ const orderTypes: { value: OrderType; label: string }[] = [
           <button
             v-for="type in orderTypes"
             :key="type.value"
-            class="rounded-md border px-2 py-2 text-sm"
+            class="rounded-lg border px-2 py-3 text-sm font-medium"
             :class="
               cart.orderType.value === type.value
-                ? 'border-mars-600 bg-mars-50 font-medium text-mars-700'
+                ? 'border-mars-600 bg-mars-50 font-semibold text-mars-700'
                 : 'border-stone-200 text-stone-600 hover:bg-stone-50'
             "
             @click="cart.orderType.value = type.value"
@@ -147,7 +150,7 @@ const orderTypes: { value: OrderType; label: string }[] = [
           v-model="cart.notes.value"
           rows="2"
           placeholder="e.g. Less ice, extra hot…"
-          class="w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
+          class="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base"
         />
       </div>
 
@@ -159,10 +162,10 @@ const orderTypes: { value: OrderType; label: string }[] = [
           <button
             v-for="method in paymentMethods"
             :key="method.value"
-            class="rounded-md border px-2 py-2 text-sm"
+            class="rounded-lg border px-2 py-3 text-sm font-medium"
             :class="
               cart.paymentMethod.value === method.value
-                ? 'border-mars-600 bg-mars-50 font-medium text-mars-700'
+                ? 'border-mars-600 bg-mars-50 font-semibold text-mars-700'
                 : 'border-stone-200 text-stone-600 hover:bg-stone-50'
             "
             @click="cart.paymentMethod.value = method.value"

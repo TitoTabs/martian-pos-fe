@@ -28,27 +28,27 @@ onMounted(fetchOrders)
       <div class="flex items-center gap-2">
         <div class="inline-flex rounded-lg border border-stone-200 bg-white p-1">
           <button
-            class="rounded-md px-3 py-1.5 text-sm"
-            :class="view === 'active' ? 'bg-mars-600 font-medium text-white' : 'text-stone-600 hover:bg-stone-100'"
+            class="rounded-md px-4 py-2 text-sm font-medium"
+            :class="view === 'active' ? 'bg-mars-600 font-semibold text-white' : 'text-stone-600 hover:bg-stone-100'"
             @click="view = 'active'"
           >
             Active
           </button>
           <button
-            class="rounded-md px-3 py-1.5 text-sm"
-            :class="view === 'completed' ? 'bg-mars-600 font-medium text-white' : 'text-stone-600 hover:bg-stone-100'"
+            class="rounded-md px-4 py-2 text-sm font-medium"
+            :class="view === 'completed' ? 'bg-mars-600 font-semibold text-white' : 'text-stone-600 hover:bg-stone-100'"
             @click="view = 'completed'"
           >
             Completed
           </button>
         </div>
         <button
-          class="rounded-lg border border-stone-200 bg-white p-2 text-stone-600 hover:bg-stone-50"
+          class="touch-target flex items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
           title="Refresh"
           :disabled="loading"
           @click="fetchOrders"
         >
-          <RefreshCw class="h-4 w-4" :class="{ 'animate-spin': loading }" />
+          <RefreshCw class="h-5 w-5" :class="{ 'animate-spin': loading }" />
         </button>
       </div>
     </div>
@@ -78,7 +78,7 @@ onMounted(fetchOrders)
       <div
         v-for="order in orders"
         :key="order.id"
-        class="flex flex-col rounded-lg border bg-white p-3"
+        class="flex flex-col rounded-xl border bg-white p-4"
         :class="
           view === 'active'
             ? 'border-mars-300 shadow-sm ring-1 ring-mars-200'
@@ -88,15 +88,18 @@ onMounted(fetchOrders)
         <!-- Header: name + badges -->
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
-            <p class="truncate text-lg font-bold leading-tight text-stone-900">
+            <span class="inline-block rounded-md bg-stone-900 px-2 py-0.5 text-sm font-bold text-white">
+              #{{ order.id }}
+            </span>
+            <p class="mt-1 truncate text-xl font-bold leading-tight text-stone-900">
               {{ order.customer_name }}
             </p>
             <p class="text-xs text-stone-500">
-              #{{ order.id }} · {{ formatDateTime(order.created_at) }}
+              {{ formatDateTime(order.created_at) }}
             </p>
           </div>
           <span
-            class="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold"
+            class="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide"
             :class="
               order.order_type === 'dine_in'
                 ? 'bg-mars-100 text-mars-800'
@@ -149,13 +152,13 @@ onMounted(fetchOrders)
         <!-- Single action -->
         <button
           v-if="view === 'active'"
-          class="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-green-700 active:bg-green-800 disabled:opacity-50"
+          class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-3 py-3.5 text-base font-bold text-white shadow-sm transition active:scale-[0.98] active:bg-green-800 hover:bg-green-700 disabled:opacity-50"
           :disabled="updatingId !== null"
           @click="complete(order)"
         >
-          <LoaderCircle v-if="updatingId === order.id" class="h-4 w-4 animate-spin" />
-          <Check v-else class="h-4 w-4" />
-          Order Complete
+          <LoaderCircle v-if="updatingId === order.id" class="h-5 w-5 animate-spin" />
+          <Check v-else class="h-5 w-5" />
+          Complete Order
         </button>
       </div>
     </div>

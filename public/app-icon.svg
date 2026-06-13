@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Kape Martian PWA source icon. Mars-brand rust background with a coffee cup mark. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#db7a3d"/>
+      <stop offset="1" stop-color="#a64a24"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- Saucer -->
+  <ellipse cx="248" cy="372" rx="150" ry="26" fill="#fdf7f0" opacity="0.95"/>
+
+  <!-- Cup body -->
+  <path d="M150 196h196v44c0 70-44 118-98 118s-98-48-98-118z" fill="#fdf7f0"/>
+
+  <!-- Handle -->
+  <path d="M346 214h22c30 0 54 24 54 54s-24 54-54 54h-26v-34h26c11 0 20-9 20-20s-9-20-20-20h-22z" fill="#fdf7f0"/>
+
+  <!-- Coffee surface -->
+  <ellipse cx="248" cy="196" rx="98" ry="20" fill="#6c3320"/>
+
+  <!-- Steam -->
+  <path d="M214 150c-16-18-16-36 0-54-22 14-22 40 0 54zM248 142c-16-18-16-40 0-58-22 14-22 44 0 58zM282 150c-16-18-16-36 0-54-22 14-22 40 0 54z" fill="#fdf7f0" opacity="0.85"/>
+</svg>

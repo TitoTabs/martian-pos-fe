@@ -82,9 +82,9 @@ onMounted(fetchCatalog)
     <div v-else class="grid gap-6 lg:grid-cols-3">
       <!-- Item grid -->
       <div class="space-y-4 lg:col-span-2">
-        <div class="flex gap-2 overflow-x-auto pb-1">
+        <div class="scroll-touch -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           <button
-            class="shrink-0 rounded-full px-3 py-1.5 text-sm"
+            class="flex shrink-0 items-center rounded-full px-4 py-2.5 text-sm font-medium"
             :class="categoryFilter === 'all' ? 'bg-mars-600 text-white' : 'border border-stone-200 bg-white text-stone-600 hover:bg-stone-50'"
             @click="categoryFilter = 'all'"
           >
@@ -93,7 +93,7 @@ onMounted(fetchCatalog)
           <button
             v-for="category in PRODUCT_CATEGORIES"
             :key="category"
-            class="shrink-0 rounded-full px-3 py-1.5 text-sm"
+            class="flex shrink-0 items-center rounded-full px-4 py-2.5 text-sm font-medium"
             :class="categoryFilter === category ? 'bg-mars-600 text-white' : 'border border-stone-200 bg-white text-stone-600 hover:bg-stone-50'"
             @click="categoryFilter = category"
           >
@@ -105,22 +105,22 @@ onMounted(fetchCatalog)
           <h2 class="text-sm font-semibold uppercase tracking-wide text-stone-500">
             {{ group.category }}
           </h2>
-          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
             <button
               v-for="product in group.products"
               :key="product.id"
-              class="rounded-lg border border-stone-200 bg-white p-3 text-left hover:border-mars-300 hover:shadow-sm active:bg-mars-50 sm:p-4"
+              class="flex flex-col rounded-xl border border-stone-200 bg-white p-3 text-left transition active:scale-[0.98] active:bg-mars-50 hover:border-mars-300 hover:shadow-sm sm:p-4"
               @click="cart.addProduct(product)"
             >
               <img
                 v-if="product.image"
                 :src="product.image"
                 :alt="product.name"
-                class="mb-2 h-20 w-full rounded-md object-cover"
+                class="mb-2 aspect-square w-full rounded-lg object-cover sm:h-24"
               />
-              <p class="font-medium text-stone-900">{{ product.name }}</p>
+              <p class="font-semibold leading-snug text-stone-900">{{ product.name }}</p>
               <p class="text-xs text-stone-500 sm:text-sm">{{ product.category }}</p>
-              <p class="mt-2 text-sm font-semibold text-mars-600 sm:text-base">
+              <p class="mt-auto pt-2 text-base font-bold text-mars-600 sm:text-lg">
                 {{ formatCurrency(product.price) }}
               </p>
             </button>
@@ -129,7 +129,7 @@ onMounted(fetchCatalog)
       </div>
 
       <!-- Cart: desktop sidebar -->
-      <div class="hidden lg:block">
+      <div class="hidden lg:sticky lg:top-20 lg:block lg:self-start">
         <PosCart :cart="cart" @checkout="completeSale" />
       </div>
     </div>
@@ -137,10 +137,14 @@ onMounted(fetchCatalog)
     <!-- Cart: mobile bottom sheet -->
     <template v-if="cartOpen">
       <div class="fixed inset-0 z-40 bg-black/40 lg:hidden" @click="cartOpen = false" />
-      <div class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white shadow-xl lg:hidden">
-        <div class="sticky top-0 flex justify-end bg-white px-4 pt-3">
-          <button class="rounded-full bg-stone-100 p-1.5 text-stone-500" @click="cartOpen = false">
-            <X class="h-4 w-4" />
+      <div class="scroll-touch safe-bottom fixed inset-x-0 bottom-0 z-50 max-h-[88vh] overflow-y-auto overscroll-contain rounded-t-2xl bg-white shadow-xl lg:hidden">
+        <div class="sticky top-0 z-10 flex items-center justify-between border-b border-stone-100 bg-white px-4 py-3">
+          <span class="font-semibold text-stone-900">Order</span>
+          <button
+            class="touch-target flex items-center justify-center rounded-full bg-stone-100 text-stone-500 active:bg-stone-200"
+            @click="cartOpen = false"
+          >
+            <X class="h-5 w-5" />
           </button>
         </div>
         <div class="px-2 pb-4">
@@ -152,14 +156,14 @@ onMounted(fetchCatalog)
     <!-- Mobile sticky checkout summary -->
     <div
       v-if="!cart.isEmpty.value && !cartOpen"
-      class="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white px-4 py-3 lg:hidden"
+      class="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white px-4 pt-3 lg:hidden"
     >
       <button
-        class="flex w-full items-center justify-between gap-3 rounded-lg bg-mars-600 px-4 py-3 font-medium text-white active:bg-mars-700"
+        class="flex w-full items-center justify-between gap-3 rounded-xl bg-mars-600 px-4 py-3.5 text-base font-semibold text-white active:bg-mars-700"
         @click="cartOpen = true"
       >
         <span class="flex items-center gap-2">
-          <ChevronUp class="h-4 w-4" />
+          <ChevronUp class="h-5 w-5" />
           {{ cart.itemCount.value }} {{ cart.itemCount.value === 1 ? 'item' : 'items' }}
         </span>
         <span>Checkout — {{ formatCurrency(cart.total.value) }}</span>

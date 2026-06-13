@@ -18,3 +18,62 @@
   --color-mars-900: #6c3320;
   --color-mars-950: #3a1910;
 }
+
+/*
+ * Kiosk / PWA hardening for in-shop tablets and phones.
+ * Keeps the app feeling like a native register: no rubber-band scroll,
+ * no accidental text selection on taps, no blue tap-highlight flash,
+ * and never any horizontal scroll regardless of content width.
+ */
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+  /* Honour the iOS/Android status-bar background colour in standalone mode. */
+  background-color: var(--color-mars-50);
+  /* Prevent iOS auto-zooming font sizes in landscape. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  /* Stop the whole page from rubber-banding; inner scroll areas still scroll. */
+  overscroll-behavior-y: none;
+}
+
+* {
+  /* Remove the grey/blue tap flash on touch devices. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Interactive controls should never show a text caret or be selectable. */
+button,
+[role="button"],
+a {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* Comfortable minimum touch target (~44px) for primary tap controls. */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Respect device safe areas (notches/home indicator) when installed. */
+.safe-bottom {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Momentum scrolling for horizontal filter rails and scroll panes. */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-touch::-webkit-scrollbar {
+  display: none;
+}

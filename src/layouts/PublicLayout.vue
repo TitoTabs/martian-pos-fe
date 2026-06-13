@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { ChefHat, Coffee, Lock, ShoppingCart } from 'lucide-vue-next'
+import { ChefHat, Coffee, Download, Lock, ShoppingCart } from 'lucide-vue-next'
+
+import { usePwaInstall } from '@/composables/usePwaInstall'
+
+const { canInstall, promptInstall } = usePwaInstall()
 
 const links = [
   { to: '/pos', label: 'POS', icon: ShoppingCart },
@@ -30,6 +34,15 @@ const links = [
             {{ link.label }}
           </RouterLink>
         </nav>
+
+        <button
+          v-if="canInstall"
+          class="flex shrink-0 items-center gap-1.5 rounded-md bg-mars-600 px-3 py-2 text-sm font-medium text-white hover:bg-mars-700"
+          @click="promptInstall"
+        >
+          <Download class="h-4 w-4" />
+          <span class="hidden sm:inline">Install</span>
+        </button>
 
         <RouterLink
           to="/admin/dashboard"
