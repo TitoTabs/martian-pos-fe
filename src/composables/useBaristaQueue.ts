@@ -39,7 +39,23 @@ export function useBaristaQueue() {
     }
   }
 
+  /** Cancel an order: restores inventory server-side and drops it from the queue. */
+  async function cancel(order: Sale) {
+    if (updatingId.value) return
+
+    updatingId.value = order.id
+    error.value = null
+    try {
+      await orderService.cancel(order.id)
+      orders.value = orders.value.filter((o) => o.id !== order.id)
+    } catch (e) {
+      error.value = (e as ApiError).message
+    } finally {
+      updatingId.value = null
+    }
+  }
+
   watch(view, fetchOrders)
 
-  return { view, orders, loading, updatingId, error, fetchOrders, complete }
+  return { view, orders, loading, updatingId, error, fetchOrders, complete, cancel }
 }

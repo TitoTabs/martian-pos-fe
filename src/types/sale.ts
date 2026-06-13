@@ -1,6 +1,6 @@
 export type PaymentMethod = 'cash' | 'gcash' | 'card'
 export type OrderType = 'dine_in' | 'take_out'
-export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'completed'
+export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled'
 
 export interface SaleItemAddon {
   id: number

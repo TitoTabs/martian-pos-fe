@@ -12,4 +12,10 @@ export const orderService = {
     const { data } = await api.patch<{ data: Sale }>(`/orders/${id}/status`, { status })
     return data.data
   },
+
+  /** Cancel an active order: restores inventory and excludes it from sales. */
+  async cancel(id: number): Promise<Sale> {
+    const { data } = await api.patch<{ data: Sale }>(`/orders/${id}/cancel`)
+    return data.data
+  },
 }

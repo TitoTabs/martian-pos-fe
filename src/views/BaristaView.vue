@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   Check,
   CheckCircle2,
@@ -7,13 +7,30 @@ import {
   LoaderCircle,
   RefreshCw,
   TriangleAlert,
+  X,
   XCircle,
 } from 'lucide-vue-next'
 
+import BaseModal from '@/components/BaseModal.vue'
 import { useBaristaQueue } from '@/composables/useBaristaQueue'
+import { useToast } from '@/composables/useToast'
+import type { Sale } from '@/types/sale'
 import { formatDateTime } from '@/utils/format'
 
-const { view, orders, loading, updatingId, error, fetchOrders, complete } = useBaristaQueue()
+const { view, orders, loading, updatingId, error, fetchOrders, complete, cancel } =
+  useBaristaQueue()
+const { success: toastSuccess } = useToast()
+
+// Two-step cancel: a small Cancel button opens a confirmation modal.
+const cancelTarget = ref<Sale | null>(null)
+
+async function confirmCancel() {
+  const order = cancelTarget.value
+  if (!order) return
+  await cancel(order)
+  cancelTarget.value = null
+  if (!error.value) toastSuccess(`Order #${order.id} cancelled`)
+}
 
 onMounted(fetchOrders)
 </script>
@@ -98,16 +115,27 @@ onMounted(fetchOrders)
               {{ formatDateTime(order.created_at) }}
             </p>
           </div>
-          <span
-            class="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide"
-            :class="
-              order.order_type === 'dine_in'
-                ? 'bg-mars-100 text-mars-800'
-                : 'bg-stone-800 text-white'
-            "
-          >
-            {{ order.order_type === 'dine_in' ? 'Dine In' : 'Take Out' }}
-          </span>
+          <div class="flex shrink-0 flex-col items-end gap-1.5">
+            <span
+              class="rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide"
+              :class="
+                order.order_type === 'dine_in'
+                  ? 'bg-mars-100 text-mars-800'
+                  : 'bg-stone-800 text-white'
+              "
+            >
+              {{ order.order_type === 'dine_in' ? 'Dine In' : 'Take Out' }}
+            </span>
+            <button
+              v-if="view === 'active'"
+              class="inline-flex items-center gap-1 rounded-full border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 active:bg-red-100 hover:bg-red-50 disabled:opacity-50"
+              :disabled="updatingId !== null"
+              @click="cancelTarget = order"
+            >
+              <X class="h-3 w-3" />
+              Cancel
+            </button>
+          </div>
         </div>
 
         <!-- Items -->
@@ -162,5 +190,32 @@ onMounted(fetchOrders)
         </button>
       </div>
     </div>
+
+    <!-- Cancel confirmation -->
+    <BaseModal :open="cancelTarget !== null" title="Cancel order?" @close="cancelTarget = null">
+      <p class="text-sm text-stone-600">
+        Cancel order
+        <span class="font-semibold text-stone-900">#{{ cancelTarget?.id }}</span>
+        for
+        <span class="font-semibold text-stone-900">{{ cancelTarget?.customer_name }}</span>?
+        This removes it from the queue, restores its inventory, and excludes it from sales.
+      </p>
+      <div class="mt-5 flex gap-2">
+        <button
+          class="flex-1 rounded-lg border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 active:bg-stone-100 hover:bg-stone-50"
+          @click="cancelTarget = null"
+        >
+          Keep Order
+        </button>
+        <button
+          class="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-red-800 hover:bg-red-700 disabled:opacity-50"
+          :disabled="updatingId !== null"
+          @click="confirmCancel"
+        >
+          <LoaderCircle v-if="updatingId !== null" class="h-4 w-4 animate-spin" />
+          Cancel Order
+        </button>
+      </div>
+    </BaseModal>
   </div>
 </template>
