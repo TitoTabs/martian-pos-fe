@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { CreditCard, LoaderCircle, PiggyBank, RotateCcw, XCircle } from 'lucide-vue-next'
+import { CreditCard, HandCoins, LoaderCircle, PiggyBank, RotateCcw, XCircle } from 'lucide-vue-next'
 
 import { reportService } from '@/services/reportService'
 import type { ApiError } from '@/types/api'
 import type { Period, SavingsReport } from '@/types/report'
-import { SAVINGS_ALLOCATION, savingsBreakdown } from '@/utils/calculations'
+import { SAVINGS_ALLOCATION, allocationBreakdown } from '@/utils/calculations'
 import { formatCurrency, formatDate } from '@/utils/format'
 
 type Filter = Period | 'custom'
@@ -51,7 +51,7 @@ async function fetchReport() {
 }
 
 const breakdown = computed(() =>
-  report.value ? savingsBreakdown(report.value.total_sales, report.value.total_expenses) : null,
+  report.value ? allocationBreakdown(report.value.total_sales) : null,
 )
 
 const rangeLabel = computed(() => {
@@ -166,8 +166,8 @@ onMounted(fetchReport)
         </p>
       </section>
 
-      <!-- Secondary cards: Credit Card + Capital Recovery -->
-      <div class="grid gap-4 sm:grid-cols-2">
+      <!-- Secondary cards: Credit Card + Capital Recovery + Personal Allowance -->
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <section class="rounded-xl border border-stone-200 bg-white p-5">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2.5">
@@ -175,18 +175,18 @@ onMounted(fetchReport)
                 <CreditCard class="h-5 w-5" />
               </div>
               <div>
-                <h3 class="font-semibold text-stone-900">Credit Card</h3>
+                <h3 class="font-semibold text-stone-900">Credit Card Payment</h3>
                 <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
                   {{ rangeLabel }}
                 </p>
               </div>
             </div>
             <span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-bold text-stone-600">
-              {{ pct(SAVINGS_ALLOCATION.ccPayment) }}
+              {{ pct(SAVINGS_ALLOCATION.creditCard) }}
             </span>
           </div>
           <p class="mt-3 text-2xl font-bold text-stone-900">
-            {{ formatCurrency(breakdown.ccPayment) }}
+            {{ formatCurrency(breakdown.creditCard) }}
           </p>
         </section>
 
@@ -211,11 +211,33 @@ onMounted(fetchReport)
             {{ formatCurrency(breakdown.capitalRecovery) }}
           </p>
         </section>
+
+        <section class="rounded-xl border border-stone-200 bg-white p-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-stone-100 text-stone-600">
+                <HandCoins class="h-5 w-5" />
+              </div>
+              <div>
+                <h3 class="font-semibold text-stone-900">Personal Allowance</h3>
+                <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
+                  {{ rangeLabel }}
+                </p>
+              </div>
+            </div>
+            <span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-bold text-stone-600">
+              {{ pct(SAVINGS_ALLOCATION.personalAllowance) }}
+            </span>
+          </div>
+          <p class="mt-3 text-2xl font-bold text-stone-900">
+            {{ formatCurrency(breakdown.personalAllowance) }}
+          </p>
+        </section>
       </div>
 
       <p class="text-sm text-stone-500">
-        Allocated from net revenue of
-        <span class="font-semibold text-stone-700">{{ formatCurrency(breakdown.netRevenue) }}</span>
+        Allocated from eligible sales of
+        <span class="font-semibold text-stone-700">{{ formatCurrency(breakdown.eligibleSales) }}</span>
         for {{ rangeLabel.toLowerCase() }}.
       </p>
     </template>

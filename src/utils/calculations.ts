@@ -1,37 +1,37 @@
-/** Allocation percentages applied to net revenue (sales − expenses). */
+/**
+ * Allocation percentages applied to eligible sales (pastries already
+ * excluded upstream). The four shares total 100%.
+ */
 export const SAVINGS_ALLOCATION = {
-  ccPayment: 0.2,
+  creditCard: 0.2,
   capitalRecovery: 0.3,
-  savings: 0.5,
+  personalAllowance: 0.25,
+  savings: 0.25,
 } as const
 
-export interface SavingsBreakdown {
-  totalSales: number
-  totalExpenses: number
-  netRevenue: number
-  ccPayment: number
+export interface AllocationBreakdown {
+  eligibleSales: number
+  creditCard: number
   capitalRecovery: number
+  personalAllowance: number
   savings: number
 }
 
 /**
- * Business rule: allocation is based on net revenue, never gross sales.
+ * Split eligible sales into the four allocation buckets.
  *
- *   Net Revenue = Total Sales − Total Expenses
- *   CC Payment = 20% of Net Revenue
- *   Capital Recovery = 30% of Net Revenue
- *   Savings / Net Profit = 50% of Net Revenue
+ *   Credit Card Payment = 20% of eligible sales
+ *   Capital Recovery    = 30% of eligible sales
+ *   Personal Allowance  = 25% of eligible sales
+ *   Savings             = 25% of eligible sales
  */
-export function savingsBreakdown(totalSales: number, totalExpenses: number): SavingsBreakdown {
-  const revenue = netRevenue(totalSales, totalExpenses)
-
+export function allocationBreakdown(eligibleSales: number): AllocationBreakdown {
   return {
-    totalSales,
-    totalExpenses,
-    netRevenue: revenue,
-    ccPayment: round(revenue * SAVINGS_ALLOCATION.ccPayment),
-    capitalRecovery: round(revenue * SAVINGS_ALLOCATION.capitalRecovery),
-    savings: round(revenue * SAVINGS_ALLOCATION.savings),
+    eligibleSales,
+    creditCard: round(eligibleSales * SAVINGS_ALLOCATION.creditCard),
+    capitalRecovery: round(eligibleSales * SAVINGS_ALLOCATION.capitalRecovery),
+    personalAllowance: round(eligibleSales * SAVINGS_ALLOCATION.personalAllowance),
+    savings: round(eligibleSales * SAVINGS_ALLOCATION.savings),
   }
 }
 

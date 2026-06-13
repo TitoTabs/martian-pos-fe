@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CreditCard, NotebookPen, PiggyBank, Receipt, RotateCcw, TrendingUp, Wallet } from 'lucide-vue-next'
+import { CreditCard, HandCoins, NotebookPen, PiggyBank, RotateCcw, Wallet } from 'lucide-vue-next'
 
-import { savingsBreakdown } from '@/utils/calculations'
+import { SAVINGS_ALLOCATION, allocationBreakdown } from '@/utils/calculations'
 import { formatCurrency } from '@/utils/format'
 
 const props = defineProps<{
-  totalSales: number
-  totalExpenses: number
-  /** Optional POS vs manual split; when provided, both rows are shown above the combined total. */
+  /** Eligible sales (pastries excluded) used as the allocation base. */
+  eligibleSales: number
+  /** Optional POS vs manual split; when provided, both rows are shown above the eligible-sales total. */
   posSales?: number
   manualSales?: number
 }>()
 
-const breakdown = computed(() => savingsBreakdown(props.totalSales, props.totalExpenses))
+const breakdown = computed(() => allocationBreakdown(props.eligibleSales))
 const showSplit = computed(() => props.posSales !== undefined && props.manualSales !== undefined)
+
+const pct = (fraction: number) => `${Math.round(fraction * 100)}%`
 </script>
 
 <template>
@@ -23,7 +25,7 @@ const showSplit = computed(() => props.posSales !== undefined && props.manualSal
       <tbody class="divide-y divide-stone-100">
         <tr class="bg-stone-50">
           <td colspan="2" class="px-4 py-2 text-xs font-medium uppercase tracking-wide text-stone-500">
-            Revenue
+            Eligible Sales
           </td>
         </tr>
         <template v-if="showSplit">
@@ -47,63 +49,51 @@ const showSplit = computed(() => props.posSales !== undefined && props.manualSal
           </tr>
         </template>
         <tr>
-          <td class="flex items-center gap-2 px-4 py-3 text-stone-600" :class="{ 'font-medium text-stone-900': showSplit }">
-            <Wallet class="h-4 w-4 text-stone-400" />
-            Total Sales
-          </td>
-          <td class="px-4 py-3 text-right text-stone-900" :class="{ 'font-medium': showSplit }">
-            {{ formatCurrency(breakdown.totalSales) }}
-          </td>
-        </tr>
-        <tr>
-          <td class="flex items-center gap-2 px-4 py-3 text-stone-600">
-            <Receipt class="h-4 w-4 text-stone-400" />
-            Total Expenses
-          </td>
-          <td class="px-4 py-3 text-right text-red-600">
-            −{{ formatCurrency(breakdown.totalExpenses) }}
-          </td>
-        </tr>
-        <tr>
           <td class="flex items-center gap-2 px-4 py-3 font-medium text-stone-900">
-            <TrendingUp class="h-4 w-4 text-stone-400" />
-            Net Revenue
+            <Wallet class="h-4 w-4 text-stone-400" />
+            Total Eligible Sales
           </td>
-          <td
-            class="px-4 py-3 text-right font-semibold"
-            :class="breakdown.netRevenue >= 0 ? 'text-stone-900' : 'text-red-600'"
-          >
-            {{ formatCurrency(breakdown.netRevenue) }}
+          <td class="px-4 py-3 text-right font-semibold text-stone-900">
+            {{ formatCurrency(breakdown.eligibleSales) }}
           </td>
         </tr>
 
         <tr class="bg-stone-50">
           <td colspan="2" class="px-4 py-2 text-xs font-medium uppercase tracking-wide text-stone-500">
-            Allocation Breakdown (of Net Revenue)
+            Allocation Breakdown (of Eligible Sales)
           </td>
         </tr>
         <tr>
           <td class="flex items-center gap-2 px-4 py-3 text-stone-600">
             <CreditCard class="h-4 w-4 text-stone-400" />
-            CC Payment (20%)
+            Credit Card Payment ({{ pct(SAVINGS_ALLOCATION.creditCard) }})
           </td>
           <td class="px-4 py-3 text-right text-stone-900">
-            {{ formatCurrency(breakdown.ccPayment) }}
+            {{ formatCurrency(breakdown.creditCard) }}
           </td>
         </tr>
         <tr>
           <td class="flex items-center gap-2 px-4 py-3 text-stone-600">
             <RotateCcw class="h-4 w-4 text-stone-400" />
-            Capital Recovery (30%)
+            Capital Recovery ({{ pct(SAVINGS_ALLOCATION.capitalRecovery) }})
           </td>
           <td class="px-4 py-3 text-right text-stone-900">
             {{ formatCurrency(breakdown.capitalRecovery) }}
           </td>
         </tr>
+        <tr>
+          <td class="flex items-center gap-2 px-4 py-3 text-stone-600">
+            <HandCoins class="h-4 w-4 text-stone-400" />
+            Personal Allowance ({{ pct(SAVINGS_ALLOCATION.personalAllowance) }})
+          </td>
+          <td class="px-4 py-3 text-right text-stone-900">
+            {{ formatCurrency(breakdown.personalAllowance) }}
+          </td>
+        </tr>
         <tr class="bg-green-50">
           <td class="flex items-center gap-2 px-4 py-3 font-medium text-green-700">
             <PiggyBank class="h-4 w-4" />
-            Savings / Net Profit (50%)
+            Savings ({{ pct(SAVINGS_ALLOCATION.savings) }})
           </td>
           <td class="px-4 py-3 text-right font-semibold text-green-700">
             {{ formatCurrency(breakdown.savings) }}
