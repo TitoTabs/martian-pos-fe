@@ -9,6 +9,7 @@ import StatCard from '@/components/StatCard.vue'
 import { usePagination } from '@/composables/usePagination'
 import { useReports, type ReportTab } from '@/composables/useReports'
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format'
+import { periodRangeLabel } from '@/utils/periodLabel'
 
 const {
   query,
@@ -30,6 +31,8 @@ const paymentOptions = [
   { value: 'gcash', label: 'GCash' },
   { value: 'card', label: 'Card' },
 ] as const
+
+const rangeLabel = computed(() => periodRangeLabel(query.value.period ?? 'today'))
 
 const tabs: { value: ReportTab; label: string }[] = [
   { value: 'sales', label: 'Sales' },
@@ -62,7 +65,10 @@ onMounted(fetchReport)
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-4">
       <h1 class="text-2xl font-semibold text-stone-900">Reports</h1>
-      <RangeFilter @change="setRange" />
+      <div class="flex flex-col items-start gap-1 sm:items-end">
+        <RangeFilter @change="setRange" />
+        <span class="text-xs font-medium text-stone-500">{{ rangeLabel }}</span>
+      </div>
     </div>
 
     <div class="inline-flex max-w-full overflow-x-auto rounded-lg border border-stone-200 bg-white p-1">

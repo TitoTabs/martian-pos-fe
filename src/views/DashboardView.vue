@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { AlertTriangle, LoaderCircle, XCircle } from 'lucide-vue-next'
 
 import RangeFilter from '@/components/RangeFilter.vue'
@@ -7,8 +7,11 @@ import SavingsBreakdownCard from '@/components/SavingsBreakdownCard.vue'
 import StatCard from '@/components/StatCard.vue'
 import { useDashboard } from '@/composables/useDashboard'
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format'
+import { periodRangeLabel } from '@/utils/periodLabel'
 
-const { data, loading, error, profit, fetchDashboard, setRange } = useDashboard()
+const { query, data, loading, error, profit, fetchDashboard, setRange } = useDashboard()
+
+const rangeLabel = computed(() => periodRangeLabel(query.value.period ?? 'today'))
 
 onMounted(fetchDashboard)
 </script>
@@ -17,7 +20,10 @@ onMounted(fetchDashboard)
   <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <h1 class="text-2xl font-semibold text-stone-900">Dashboard</h1>
-      <RangeFilter @change="setRange" />
+      <div class="flex flex-col items-start gap-1 sm:items-end">
+        <RangeFilter @change="setRange" />
+        <span class="text-xs font-medium text-stone-500">{{ rangeLabel }}</span>
+      </div>
     </div>
 
     <div v-if="loading && !data" class="flex items-center gap-2 text-stone-600">
