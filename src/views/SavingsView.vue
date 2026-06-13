@@ -5,11 +5,12 @@ import { CreditCard, HandCoins, LoaderCircle, PiggyBank, RotateCcw, XCircle } fr
 import RangeFilter from '@/components/RangeFilter.vue'
 import { reportService } from '@/services/reportService'
 import type { ApiError } from '@/types/api'
-import type { Period, RangeQuery, SavingsReport } from '@/types/report'
+import type { RangeQuery, SavingsReport } from '@/types/report'
 import { SAVINGS_ALLOCATION, allocationBreakdown, netRevenue } from '@/utils/calculations'
 import { formatCurrency } from '@/utils/format'
+import { customRangeLabel, periodRangeLabel } from '@/utils/periodLabel'
 
-const period = ref<Period>('today')
+const query = ref<RangeQuery>({ period: 'today' })
 const report = ref<SavingsReport | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -18,7 +19,7 @@ async function fetchReport() {
   loading.value = true
   error.value = null
   try {
-    report.value = await reportService.savings({ period: period.value })
+    report.value = await reportService.savings(query.value)
   } catch (e) {
     error.value = (e as ApiError).message
   } finally {
@@ -26,8 +27,8 @@ async function fetchReport() {
   }
 }
 
-function setRange(query: RangeQuery) {
-  period.value = query.period ?? 'today'
+function setRange(next: RangeQuery) {
+  query.value = next
   fetchReport()
 }
 
@@ -37,19 +38,11 @@ const breakdown = computed(() =>
     : null,
 )
 
-const rangeLabel = computed(() => {
-  switch (period.value) {
-    case 'today':
-      return 'Today'
-    case 'week':
-      return 'This Week'
-    case 'month':
-      return 'This Month'
-    case 'year':
-      return 'This Year'
-  }
-  return ''
-})
+const rangeLabel = computed(() =>
+  query.value.startDate && query.value.endDate
+    ? customRangeLabel(query.value.startDate, query.value.endDate)
+    : periodRangeLabel(query.value.period ?? 'today'),
+)
 
 const pct = (fraction: number) => `${Math.round(fraction * 100)}%`
 
@@ -65,7 +58,7 @@ onMounted(fetchReport)
       </p>
     </div>
 
-    <RangeFilter @change="setRange" />
+    <RangeFilter allow-custom @change="setRange" />
 
     <div v-if="loading && !report" class="flex items-center gap-2 text-stone-600">
       <LoaderCircle class="h-5 w-5 animate-spin" />
